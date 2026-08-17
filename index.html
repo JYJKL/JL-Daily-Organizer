@@ -129,8 +129,8 @@
 
   <script>
     // REPLACE THESE KEYS WITH YOUR SUPABASE DETAILS
-    const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co/rest/v1/"";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g";
+    const SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
 
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -150,13 +150,14 @@
     }
 
     let activeDate = getTodayString();
-    let currentData = {};
+    let currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
     let saveTimeout = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       document.getElementById('date-picker').value = activeDate;
-      checkRolloverAndLoad();
+      renderAllUI();
+      await checkRolloverAndLoad();
       subscribeRealtime();
     });
 
@@ -234,15 +235,19 @@
       renderSchedule();
       renderTasks();
       renderHabits();
-      document.getElementById('notes').value = currentData.notes;
+      document.getElementById('notes').value = currentData.notes || "";
     }
 
     function saveActiveData() {
-      document.getElementById('sync-status').classList.remove('hidden');
+      const status = document.getElementById('sync-status');
+      status.textContent = "● Saving...";
+      status.classList.remove('hidden');
+
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         await supabase.from('organizer_data').upsert({ date_key: activeDate, data: currentData, updated_at: new Date() });
-      }, 300);
+        status.textContent = "● Live Synced";
+      }, 500);
     }
 
     function updateHeaderUI(selectedDate, today) {
@@ -289,14 +294,18 @@
               </label>
             ` : ''}
           </div>
-          <textarea rows="1" placeholder="Empty slot" oninput="saveSchedule('${time}', this.value)"
+          <textarea rows="1" placeholder="Empty slot" 
+                    oninput="saveSchedule('${time}', this.value)"
                     class="w-full bg-transparent text-sm text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
       });
     }
 
-    function saveSchedule(time, val) { currentData.schedule[time] = val; saveActiveData(); }
+    function saveSchedule(time, val) { 
+      currentData.schedule[time] = val; 
+      saveActiveData(); 
+    }
 
     function toggleWaterSlot(time) {
       currentData.waterCheckmarks[time] = !currentData.waterCheckmarks[time];
