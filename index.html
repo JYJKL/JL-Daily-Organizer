@@ -129,7 +129,7 @@
   </div>
 
   <script>
-    // Replace with your real credentials
+    // Replace with your real Supabase credentials if using Supabase
     const SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
     const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
 
@@ -318,7 +318,7 @@
         const waterChecked = !!(currentData.waterCheckmarks && currentData.waterCheckmarks[time]);
 
         const card = document.createElement('div');
-        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] flex flex-col justify-between space-y-1';
+        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] flex flex-col justify-between space-y-1 h-auto transition-all';
         card.innerHTML = `
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-[#8c9296] dark:text-[#9ca3af]">${time}</span>
@@ -330,11 +330,22 @@
             ` : ''}
           </div>
           <textarea rows="1" placeholder="Empty slot" 
-                    oninput="saveSchedule('${time}', this.value)"
-                    class="w-full bg-transparent text-sm text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap">${escapeHtml(value)}</textarea>
+                    oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
+                    class="w-full bg-transparent text-sm text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
+
+        // Auto-expand initial content if text exists
+        const textarea = card.querySelector('textarea');
+        if (textarea && value) {
+          setTimeout(() => autoExpandTextarea(textarea), 0);
+        }
       });
+    }
+
+    function autoExpandTextarea(element) {
+      element.style.height = 'auto';
+      element.style.height = element.scrollHeight + 'px';
     }
 
     function saveSchedule(time, val) { 
