@@ -69,7 +69,7 @@
       <section class="lg:col-span-2 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
-          <span class="text-xs text-[#8c9296] dark:text-[#9ca3af]">Auto-syncs across devices</span>
+          <span class="text-xs text-[#8c9296] dark:text-[#9ca3af]">Auto-saves as you type</span>
         </div>
         <div id="schedule-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-1"></div>
       </section>
@@ -129,11 +129,11 @@
   </div>
 
   <script>
-    // REPLACE THESE KEYS WITH YOUR SUPABASE DETAILS
+    // Replace with your real credentials
     const SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
     const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabaseClient = null;
 
     const HOURS = [
       "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
@@ -157,14 +157,37 @@
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       document.getElementById('date-picker').value = activeDate;
+      
+      // Render layout instantly
       renderAllUI();
-      await checkRolloverAndLoad();
-      subscribeRealtime();
+
+      // Safely initialize Supabase
+      if (typeof supabase !== 'undefined' && SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE") {
+        try {
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          await checkRolloverAndLoad();
+          subscribeRealtime();
+        } catch (e) {
+          console.warn("Supabase init failed, falling back to local mode:", e);
+          loadLocalFallback();
+        }
+      } else {
+        console.log("Supabase credentials not configured. Running in local storage mode.");
+        loadLocalFallback();
+      }
     });
 
-    // Realtime Supabase Subscription
+    function loadLocalFallback() {
+      const local = localStorage.getItem(`organizer_day_${activeDate}`);
+      if (local) {
+        try { currentData = JSON.parse(local); } catch(e){}
+      }
+      renderAllUI();
+    }
+
     function subscribeRealtime() {
-      supabase
+      if (!supabaseClient) return;
+      supabaseClient
         .channel('organizer_data_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'organizer_data' }, payload => {
           if (payload.new && payload.new.date_key === activeDate) {
@@ -176,6 +199,7 @@
     }
 
     async function checkRolloverAndLoad() {
+      if (!supabaseClient) return;
       const today = getTodayString();
       const lastOpened = localStorage.getItem('organizer_last_opened') || today;
 
@@ -188,7 +212,8 @@
     }
 
     async function handleDayRollover(previousDay, newDay) {
-      const { data: prevDataRow } = await supabase.from('organizer_data').select('data').eq('date_key', previousDay).single();
+      if (!supabaseClient) return;
+      const { data: prevDataRow } = await supabaseClient.from('organizer_data').select('data').eq('date_key', previousDay).single();
       let prevData = prevDataRow ? prevDataRow.data : null;
 
       let rolledOverTasks = [];
@@ -197,7 +222,7 @@
         rolledOverTasks = uncompleted.map(t => ({ ...t, id: Date.now() + Math.random() }));
       }
 
-      const { data: existingNew } = await supabase.from('organizer_data').select('date_key').eq('date_key', newDay).single();
+      const { data: existingNew } = await supabaseClient.from('organizer_data').select('date_key').eq('date_key', newDay).single();
       if (!existingNew) {
         const newData = {
           schedule: {},
@@ -206,7 +231,7 @@
           habits: { water: false, exercise: false, read: false },
           notes: ""
         };
-        await supabase.from('organizer_data').upsert({ date_key: newDay, data: newData });
+        await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
       }
     }
 
@@ -214,12 +239,15 @@
       activeDate = dateStr;
       const today = getTodayString();
 
-      const { data: row } = await supabase.from('organizer_data').select('data').eq('date_key', dateStr).single();
-
-      if (row && row.data) {
-        currentData = row.data;
+      if (supabaseClient) {
+        const { data: row } = await supabaseClient.from('organizer_data').select('data').eq('date_key', dateStr).single();
+        if (row && row.data) {
+          currentData = row.data;
+        } else {
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
+        }
       } else {
-        currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
+        loadLocalFallback();
       }
 
       currentData.schedule = currentData.schedule || {};
@@ -240,15 +268,20 @@
     }
 
     function saveActiveData() {
-      const status = document.getElementById('sync-status');
-      status.textContent = "● Saving...";
-      status.classList.remove('hidden');
+      // Save locally immediately
+      localStorage.setItem(`organizer_day_${activeDate}`, JSON.stringify(currentData));
 
-      clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(async () => {
-        await supabase.from('organizer_data').upsert({ date_key: activeDate, data: currentData, updated_at: new Date() });
-        status.textContent = "● Live Synced";
-      }, 500);
+      if (supabaseClient) {
+        const status = document.getElementById('sync-status');
+        status.textContent = "● Saving...";
+        status.classList.remove('hidden');
+
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(async () => {
+          await supabaseClient.from('organizer_data').upsert({ date_key: activeDate, data: currentData, updated_at: new Date() });
+          status.textContent = "● Live Synced";
+        }, 500);
+      }
     }
 
     function updateHeaderUI(selectedDate, today) {
@@ -276,12 +309,13 @@
 
     function renderSchedule() {
       const container = document.getElementById('schedule-container');
+      if (!container) return;
       container.innerHTML = '';
 
       HOURS.forEach(time => {
-        const value = currentData.schedule[time] || '';
+        const value = (currentData.schedule && currentData.schedule[time]) ? currentData.schedule[time] : '';
         const isWaterSlot = WATER_SLOTS.includes(time);
-        const waterChecked = !!currentData.waterCheckmarks[time];
+        const waterChecked = !!(currentData.waterCheckmarks && currentData.waterCheckmarks[time]);
 
         const card = document.createElement('div');
         card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] flex flex-col justify-between space-y-1';
@@ -333,6 +367,7 @@
 
     function renderTasks() {
       const list = document.getElementById('task-list');
+      if (!list) return;
       list.innerHTML = '';
       if (currentData.tasks.length === 0) {
         list.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-xs text-center py-4">No tasks recorded</li>`;
