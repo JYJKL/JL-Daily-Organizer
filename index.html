@@ -211,54 +211,72 @@
       await loadDateData(activeDate);
     }
 
-    async function handleDayRollover(previousDay, newDay) {
-      if (!supabaseClient) return;
-      const { data: prevDataRow } = await supabaseClient.from('organizer_data').select('data').eq('date_key', previousDay).single();
-      let prevData = prevDataRow ? prevDataRow.data : null;
+   async function handleDayRollover(previousDay, newDay) {
+  if (!supabaseClient) return;
+  
+  // Use .maybeSingle() here as well
+  const { data: prevDataRow } = await supabaseClient
+    .from('organizer_data')
+    .select('data')
+    .eq('date_key', previousDay)
+    .maybeSingle();
+    
+  let prevData = prevDataRow ? prevDataRow.data : null;
 
-      let rolledOverTasks = [];
-      if (prevData && prevData.tasks) {
-        const uncompleted = prevData.tasks.filter(t => !t.completed);
-        rolledOverTasks = uncompleted.map(t => ({ ...t, id: Date.now() + Math.random() }));
-      }
+  let rolledOverTasks = [];
+  if (prevData && prevData.tasks) {
+    const uncompleted = prevData.tasks.filter(t => !t.completed);
+    rolledOverTasks = uncompleted.map(t => ({ ...t, id: Date.now() + Math.random() }));
+  }
 
-      const { data: existingNew } = await supabaseClient.from('organizer_data').select('date_key').eq('date_key', newDay).single();
-      if (!existingNew) {
-        const newData = {
-          schedule: {},
-          waterCheckmarks: {},
-          tasks: rolledOverTasks,
-          habits: { water: false, exercise: false, read: false },
-          notes: ""
-        };
-        await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
-      }
+  const { data: existingNew } = await supabaseClient
+    .from('organizer_data')
+    .select('date_key')
+    .eq('date_key', newDay)
+    .maybeSingle();
+    
+  if (!existingNew) {
+    const newData = {
+      schedule: {},
+      waterCheckmarks: {},
+      tasks: rolledOverTasks,
+      habits: { water: false, exercise: false, read: false },
+      notes: ""
+    };
+    await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
+  }
+}
+
+async function loadDateData(dateStr) {
+  activeDate = dateStr;
+  const today = getTodayString();
+
+  if (supabaseClient) {
+    // Use .maybeSingle() instead of .single() to avoid 406 error
+    const { data: row, error } = await supabaseClient
+      .from('organizer_data')
+      .select('data')
+      .eq('date_key', dateStr)
+      .maybeSingle();
+
+    if (row && row.data) {
+      currentData = row.data;
+    } else {
+      currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
     }
+  } else {
+    loadLocalFallback();
+  }
 
-    async function loadDateData(dateStr) {
-      activeDate = dateStr;
-      const today = getTodayString();
+  currentData.schedule = currentData.schedule || {};
+  currentData.waterCheckmarks = currentData.waterCheckmarks || {};
+  currentData.tasks = currentData.tasks || [];
+  currentData.habits = currentData.habits || { water: false, exercise: false, read: false };
+  currentData.notes = currentData.notes || "";
 
-      if (supabaseClient) {
-        const { data: row } = await supabaseClient.from('organizer_data').select('data').eq('date_key', dateStr).single();
-        if (row && row.data) {
-          currentData = row.data;
-        } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
-        }
-      } else {
-        loadLocalFallback();
-      }
-
-      currentData.schedule = currentData.schedule || {};
-      currentData.waterCheckmarks = currentData.waterCheckmarks || {};
-      currentData.tasks = currentData.tasks || [];
-      currentData.habits = currentData.habits || { water: false, exercise: false, read: false };
-      currentData.notes = currentData.notes || "";
-
-      updateHeaderUI(dateStr, today);
-      renderAllUI();
-    }
+  updateHeaderUI(dateStr, today);
+  renderAllUI();
+}
 
     function renderAllUI() {
       renderSchedule();
