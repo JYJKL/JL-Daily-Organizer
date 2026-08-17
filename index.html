@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>JL's Daily Organizer</title>
+  <title>JL's Daily Organizer</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = { darkMode: 'class' }
@@ -15,7 +14,6 @@
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   <div class="max-w-6xl mx-auto space-y-6">
     
-    <!-- Header -->
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
       <div>
         <div class="flex items-center gap-3">
@@ -27,14 +25,12 @@
       </div>
       
       <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-        <!-- Date Selector -->
         <div class="flex items-center gap-2 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 rounded-lg border border-[#e2dedc] dark:border-[#404347]">
           <label for="date-picker" class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] pl-1">Date:</label>
           <input type="date" id="date-picker" onchange="changeDate(this.value)" 
                  class="bg-transparent text-xs font-medium text-[#383d40] dark:text-[#f3f4f6] focus:outline-none cursor-pointer">
         </div>
 
-        <!-- Export File Button -->
         <button onclick="exportCurrentDayHTML()" title="Download today's state as a standalone named HTML file"
                 class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#e8e4dc] dark:hover:bg-[#404347] transition flex items-center justify-center">
           <svg class="w-4 h-4 text-[#4a4e51] dark:text-[#d1d5db]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,13 +38,11 @@
           </svg>
         </button>
 
-        <!-- Theme Toggle -->
         <button id="theme-toggle" onclick="toggleDarkMode()" title="Toggle Light/Dark Theme"
                 class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#e8e4dc] dark:hover:bg-[#404347] transition flex items-center justify-center">
           <span id="theme-icon" class="text-sm">🌙</span>
         </button>
 
-        <!-- Progress -->
         <div class="text-right pl-2 border-l border-[#e8e4dc] dark:border-[#383b3e]">
           <span class="text-[10px] font-medium uppercase tracking-wider text-[#8c9296] dark:text-[#9ca3af] block">Progress</span>
           <div class="text-xl font-semibold text-[#84a98c] dark:text-[#a3b18a]" id="progress-text">0%</div>
@@ -56,16 +50,13 @@
       </div>
     </header>
 
-    <!-- Banner for Historical View Mode -->
     <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center">
       <span>📜 Viewing archived entry for <strong id="archive-date-label" class="text-[#383d40] dark:text-[#f3f4f6]"></strong>. Edits auto-save to cloud.</span>
       <button onclick="goToToday()" class="text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline">Return to Today</button>
     </div>
 
-    <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Timed Schedule -->
       <section class="lg:col-span-2 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
@@ -74,10 +65,8 @@
         <div id="schedule-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-1"></div>
       </section>
 
-      <!-- Right Column: Tasks, Habits, Brain Dump -->
       <div class="space-y-6">
         
-        <!-- Tasks -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
           
@@ -93,7 +82,6 @@
           <ul id="task-list" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></ul>
         </section>
 
-        <!-- Daily Habits -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">Habits & Routines</h2>
           <div class="space-y-2">
@@ -117,7 +105,6 @@
           </div>
         </section>
 
-        <!-- Brain Dump -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6] mb-2">Brain Dump</h2>
           <textarea id="notes" placeholder="Jot down quick thoughts..." oninput="saveNotes(this.value)"
@@ -129,8 +116,8 @@
   </div>
 
   <script>
-    // Replace with your real Supabase credentials if using Supabase
-    const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co/";
+     // Replace with your real Supabase credentials if using Supabase
+    const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g";
 
     let supabaseClient = null;
@@ -153,16 +140,14 @@
     let activeDate = getTodayString();
     let currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
     let saveTimeout = null;
+    let isUserTyping = false;
 
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       document.getElementById('date-picker').value = activeDate;
-      
-      // Render layout instantly
       renderAllUI();
 
-      // Safely initialize Supabase
-      if (typeof supabase !== 'undefined' && SUPABASE_URL !== "https://zeplhjklsuxwndpwfnyl.supabase.co/rest/v1/") {
+      if (typeof supabase !== 'undefined' && SUPABASE_URL !== "https://zeplhjklsuxwndpwfnyl.supabase.co") {
         try {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           await checkRolloverAndLoad();
@@ -172,7 +157,6 @@
           loadLocalFallback();
         }
       } else {
-        console.log("Supabase credentials not configured. Running in local storage mode.");
         loadLocalFallback();
       }
     });
@@ -191,8 +175,11 @@
         .channel('organizer_data_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'organizer_data' }, payload => {
           if (payload.new && payload.new.date_key === activeDate) {
-            currentData = payload.new.data;
-            renderAllUI();
+            // Only re-render remote updates if the user isn't actively typing locally
+            if (!isUserTyping) {
+              currentData = payload.new.data;
+              renderAllUI();
+            }
           }
         })
         .subscribe();
@@ -211,82 +198,81 @@
       await loadDateData(activeDate);
     }
 
-   async function handleDayRollover(previousDay, newDay) {
-  if (!supabaseClient) return;
-  
-  // Use .maybeSingle() here as well
-  const { data: prevDataRow } = await supabaseClient
-    .from('organizer_data')
-    .select('data')
-    .eq('date_key', previousDay)
-    .maybeSingle();
-    
-  let prevData = prevDataRow ? prevDataRow.data : null;
+    async function handleDayRollover(previousDay, newDay) {
+      if (!supabaseClient) return;
+      const { data: prevDataRow } = await supabaseClient
+        .from('organizer_data')
+        .select('data')
+        .eq('date_key', previousDay)
+        .maybeSingle();
+        
+      let prevData = prevDataRow ? prevDataRow.data : null;
 
-  let rolledOverTasks = [];
-  if (prevData && prevData.tasks) {
-    const uncompleted = prevData.tasks.filter(t => !t.completed);
-    rolledOverTasks = uncompleted.map(t => ({ ...t, id: Date.now() + Math.random() }));
-  }
+      let rolledOverTasks = [];
+      if (prevData && prevData.tasks) {
+        const uncompleted = prevData.tasks.filter(t => !t.completed);
+        rolledOverTasks = uncompleted.map(t => ({ ...t, id: Date.now() + Math.random() }));
+      }
 
-  const { data: existingNew } = await supabaseClient
-    .from('organizer_data')
-    .select('date_key')
-    .eq('date_key', newDay)
-    .maybeSingle();
-    
-  if (!existingNew) {
-    const newData = {
-      schedule: {},
-      waterCheckmarks: {},
-      tasks: rolledOverTasks,
-      habits: { water: false, exercise: false, read: false },
-      notes: ""
-    };
-    await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
-  }
-}
+      const { data: existingNew } = await supabaseClient
+        .from('organizer_data')
+        .select('date_key')
+        .eq('date_key', newDay)
+        .maybeSingle();
 
-async function loadDateData(dateStr) {
-  activeDate = dateStr;
-  const today = getTodayString();
-
-  if (supabaseClient) {
-    // Use .maybeSingle() instead of .single() to avoid 406 error
-    const { data: row, error } = await supabaseClient
-      .from('organizer_data')
-      .select('data')
-      .eq('date_key', dateStr)
-      .maybeSingle();
-
-    if (row && row.data) {
-      currentData = row.data;
-    } else {
-      currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
+      if (!existingNew) {
+        const newData = {
+          schedule: {},
+          waterCheckmarks: {},
+          tasks: rolledOverTasks,
+          habits: { water: false, exercise: false, read: false },
+          notes: ""
+        };
+        await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
+      }
     }
-  } else {
-    loadLocalFallback();
-  }
 
-  currentData.schedule = currentData.schedule || {};
-  currentData.waterCheckmarks = currentData.waterCheckmarks || {};
-  currentData.tasks = currentData.tasks || [];
-  currentData.habits = currentData.habits || { water: false, exercise: false, read: false };
-  currentData.notes = currentData.notes || "";
+    async function loadDateData(dateStr) {
+      activeDate = dateStr;
+      const today = getTodayString();
 
-  updateHeaderUI(dateStr, today);
-  renderAllUI();
-}
+      if (supabaseClient) {
+        const { data: row } = await supabaseClient
+          .from('organizer_data')
+          .select('data')
+          .eq('date_key', dateStr)
+          .maybeSingle();
+
+        if (row && row.data) {
+          currentData = row.data;
+        } else {
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, exercise: false, read: false }, notes: "" };
+        }
+      } else {
+        loadLocalFallback();
+      }
+
+      currentData.schedule = currentData.schedule || {};
+      currentData.waterCheckmarks = currentData.waterCheckmarks || {};
+      currentData.tasks = currentData.tasks || [];
+      currentData.habits = currentData.habits || { water: false, exercise: false, read: false };
+      currentData.notes = currentData.notes || "";
+
+      updateHeaderUI(dateStr, today);
+      renderAllUI();
+    }
 
     function renderAllUI() {
       renderSchedule();
       renderTasks();
       renderHabits();
-      document.getElementById('notes').value = currentData.notes || "";
+      const notesEl = document.getElementById('notes');
+      if (document.activeElement !== notesEl) {
+        notesEl.value = currentData.notes || "";
+      }
     }
 
     function saveActiveData() {
-      // Save locally immediately
       localStorage.setItem(`organizer_day_${activeDate}`, JSON.stringify(currentData));
 
       if (supabaseClient) {
@@ -298,7 +284,8 @@ async function loadDateData(dateStr) {
         saveTimeout = setTimeout(async () => {
           await supabaseClient.from('organizer_data').upsert({ date_key: activeDate, data: currentData, updated_at: new Date() });
           status.textContent = "● Live Synced";
-        }, 500);
+          isUserTyping = false; // reset typing flag after save completes
+        }, 1000);
       }
     }
 
@@ -328,6 +315,11 @@ async function loadDateData(dateStr) {
     function renderSchedule() {
       const container = document.getElementById('schedule-container');
       if (!container) return;
+
+      // Preserve currently focused element ID or attribute so typing isn't interrupted
+      const activeEl = document.activeElement;
+      const activeTimeSlot = activeEl ? activeEl.getAttribute('data-time') : null;
+
       container.innerHTML = '';
 
       HOURS.forEach(time => {
@@ -347,16 +339,23 @@ async function loadDateData(dateStr) {
               </label>
             ` : ''}
           </div>
-          <textarea rows="1" placeholder="Empty slot" 
+          <textarea rows="1" placeholder="Empty slot" data-time="${time}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
                     class="w-full bg-transparent text-sm text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
 
-        // Auto-expand initial content if text exists
         const textarea = card.querySelector('textarea');
         if (textarea && value) {
           setTimeout(() => autoExpandTextarea(textarea), 0);
+        }
+
+        // Restore focus if this was the active slot
+        if (activeTimeSlot && activeTimeSlot === time) {
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+          }, 0);
         }
       });
     }
@@ -367,6 +366,7 @@ async function loadDateData(dateStr) {
     }
 
     function saveSchedule(time, val) { 
+      isUserTyping = true;
       currentData.schedule[time] = val; 
       saveActiveData(); 
     }
@@ -431,33 +431,4 @@ async function loadDateData(dateStr) {
       document.getElementById('habit-water').checked = (completedCount === WATER_SLOTS.length);
       ['exercise', 'read'].forEach(key => {
         const el = document.getElementById(`habit-${key}`);
-        if (el) el.checked = !!currentData.habits[key];
-      });
-    }
-
-    function saveNotes(val) { currentData.notes = val; saveActiveData(); }
-
-    function exportCurrentDayHTML() {
-      const fileName = `${activeDate}.html`;
-      const docHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-      const blob = new Blob([docHtml], { type: 'text/html' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    }
-
-    function initTheme() { applyTheme(localStorage.getItem('organizer_dark') === 'true'); }
-    function toggleDarkMode() { const isDark = !document.documentElement.classList.contains('dark'); localStorage.setItem('organizer_dark', isDark); applyTheme(isDark); }
-    function applyTheme(isDark) {
-      if (isDark) { document.documentElement.classList.add('dark'); document.getElementById('theme-icon').textContent = '☀️'; }
-      else { document.documentElement.classList.remove('dark'); document.getElementById('theme-icon').textContent = '🌙'; }
-    }
-
-    function escapeHtml(str) { return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-  </script>
-</body>
-</html>
+        if (el)
