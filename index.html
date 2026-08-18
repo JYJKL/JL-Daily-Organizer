@@ -75,7 +75,7 @@
         <div id="schedule-container" class="flex flex-col md:flex-wrap md:max-h-[820px] gap-3 items-start overflow-y-auto pr-1"></div>
       </section>
 
-      <!-- Right Column: Tasks, Habits, Brain Dump -->
+      <!-- Right Column: Tasks, Habits, macOS Reminders Cheat Sheet -->
       <div class="space-y-6">
         
         <!-- Tasks -->
@@ -127,11 +127,54 @@
           </div>
         </section>
 
-        <!-- Brain Dump -->
+        <!-- macOS Reminders Shortcuts Cheat Sheet -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-          <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6] mb-2">Brain Dump</h2>
-          <textarea id="notes" placeholder="Jot down quick thoughts..." oninput="saveNotes(this.value)"
-                    class="w-full h-24 p-3 border border-[#e2dedc] dark:border-[#404347] rounded-lg text-sm focus:outline-none focus:border-[#c2afd0] dark:focus:border-[#a388ee] resize-none bg-[#f8f6f0] dark:bg-[#323538] text-[#4a4e51] dark:text-[#e5e7eb]"></textarea>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
+            <a href="https://support.apple.com/guide/reminders/keyboard-shortcuts-remn19b3424c/mac" target="_blank" rel="noopener noreferrer" title="View Apple Official Docs" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline">Apple Docs ↗</a>
+          </div>
+          
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">New Reminder</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ N</kbd>
+            </div>
+
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">New List</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ N</kbd>
+            </div>
+
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Indent / Subtask</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ ]</kbd>
+            </div>
+
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Outdent Subtask</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ [</kbd>
+            </div>
+
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Get Info / Details</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ I</kbd>
+            </div>
+
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Flag / Unflag</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ F</kbd>
+            </div>
+
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Go to Today</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ 1</kbd>
+            </div>
+
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Go to Scheduled</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono text-[#383d40] dark:text-[#f3f4f6] font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ 2</kbd>
+            </div>
+          </div>
         </section>
 
       </div>
@@ -162,7 +205,7 @@
     }
 
     let activeDate = getTodayString();
-    let currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, notes: "" };
+    let currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false } };
     let saveTimeout = null;
     let isUserTyping = false;
 
@@ -248,8 +291,7 @@
           schedule: {},
           waterCheckmarks: {},
           tasks: rolledOverTasks,
-          habits: { water: false, drugs: false, exercise: false, read: false },
-          notes: ""
+          habits: { water: false, drugs: false, exercise: false, read: false }
         };
         await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
       }
@@ -269,7 +311,7 @@
         if (row && row.data) {
           currentData = row.data;
         } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, notes: "" };
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false } };
         }
       } else {
         loadLocalFallback();
@@ -279,7 +321,6 @@
       currentData.waterCheckmarks = currentData.waterCheckmarks || {};
       currentData.tasks = currentData.tasks || [];
       currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
-      currentData.notes = currentData.notes || "";
 
       updateHeaderUI(dateStr, today);
       renderAllUI();
@@ -289,10 +330,6 @@
       renderSchedule();
       renderTasks();
       renderHabits();
-      const notesEl = document.getElementById('notes');
-      if (document.activeElement !== notesEl) {
-        notesEl.value = currentData.notes || "";
-      }
     }
 
     function saveActiveData() {
@@ -424,7 +461,6 @@
       if (currentData.tasks.length === 0) {
         list.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-xs text-center py-4">No tasks recorded</li>`;
       } else {
-        // Sort tasks: pending (completed=false) first, completed (completed=true) last
         const sortedTasks = [...currentData.tasks].sort((a, b) => Number(a.completed) - Number(b.completed));
 
         sortedTasks.forEach(task => {
@@ -490,12 +526,6 @@
       });
 
       updateProgress();
-    }
-
-    function saveNotes(val) { 
-      isUserTyping = true;
-      currentData.notes = val; 
-      saveActiveData(); 
     }
 
     function exportCurrentDayHTML() {
