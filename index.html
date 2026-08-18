@@ -71,8 +71,8 @@
           <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
           <span class="text-xs text-[#8c9296] dark:text-[#9ca3af]">Auto-saves as you type</span>
         </div>
-        <!-- Grid layout: 1 col on mobile, 2 even cols on md+ with top alignment -->
-        <div id="schedule-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
+        <!-- Mobile: 1 vertical grid column. Desktop: Column-first grid layout (6 rows, 2 columns) -->
+        <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-6 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
       </section>
 
       <!-- Right Column: Tasks, Habits, macOS Reminders Cheat Sheet -->
@@ -198,18 +198,8 @@
 
     let supabaseClient = null;
 
-    // Desktop 2-column grid layout pairing: [Left Col Item, Right Col Item]
+    // Strict chronological array: Grid auto-flow column places 0-5 (9 AM - 2 PM) in Col 1, 6-11 (3 PM - 8 PM) in Col 2
     const HOURS = [
-      "9:00 AM", "3:00 PM",
-      "10:00 AM", "4:00 PM",
-      "11:00 AM", "5:00 PM",
-      "12:00 PM", "6:00 PM",
-      "1:00 PM", "7:00 PM",
-      "2:00 PM", "8:00 PM"
-    ];
-
-    // Chronological order array mapped for explicit Tab key navigation
-    const CHRONOLOGICAL_HOURS = [
       "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
       "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM"
     ];
@@ -401,11 +391,11 @@
 
       container.innerHTML = '';
 
-      HOURS.forEach(time => {
+      HOURS.forEach((time, index) => {
         const value = (currentData.schedule && currentData.schedule[time]) ? currentData.schedule[time] : '';
         const isWaterSlot = WATER_SLOTS.includes(time);
         const waterChecked = !!(currentData.waterCheckmarks && currentData.waterCheckmarks[time]);
-        const tabIndex = CHRONOLOGICAL_HOURS.indexOf(time) + 1;
+        const tabIndex = index + 1;
 
         const card = document.createElement('div');
         card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] flex flex-col justify-between space-y-1 h-auto self-start w-full transition-all';
