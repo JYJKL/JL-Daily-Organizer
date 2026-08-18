@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JL's Daily Organizer</title>
-  <title>Daily Organizer & History</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase Client Library -->
@@ -72,8 +71,8 @@
           <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
           <span class="text-xs text-[#8c9296] dark:text-[#9ca3af]">Auto-saves as you type</span>
         </div>
-        <!-- Top-aligned grid with items-start -->
-        <div id="schedule-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
+        <!-- Mobile: 1 vertical column in strict order. Desktop: 2-column flex wrap top-to-bottom -->
+        <div id="schedule-container" class="flex flex-col md:flex-wrap md:max-h-[820px] gap-3 items-start overflow-y-auto pr-1"></div>
       </section>
 
       <!-- Right Column: Tasks, Habits, Brain Dump -->
@@ -146,14 +145,10 @@
 
     let supabaseClient = null;
 
-    // Time ordering set to column-first flow: Left Column (9 AM - 2 PM) -> Right Column (3 PM - 8 PM)
+    // Strict chronological hour array (ensures mobile renders 9 AM -> 8 PM sequentially)
     const HOURS = [
-      "9:00 AM", "3:00 PM",
-      "10:00 AM", "4:00 PM",
-      "11:00 AM", "5:00 PM",
-      "12:00 PM", "6:00 PM",
-      "1:00 PM", "7:00 PM",
-      "2:00 PM", "8:00 PM"
+      "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
+      "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM"
     ];
 
     const WATER_SLOTS = ["11:00 AM", "2:00 PM", "5:00 PM", "8:00 PM"];
@@ -349,13 +344,14 @@
 
       container.innerHTML = '';
 
-      HOURS.forEach(time => {
+      HOURS.forEach((time, index) => {
         const value = (currentData.schedule && currentData.schedule[time]) ? currentData.schedule[time] : '';
         const isWaterSlot = WATER_SLOTS.includes(time);
         const waterChecked = !!(currentData.waterCheckmarks && currentData.waterCheckmarks[time]);
+        const tabIndex = index + 1;
 
         const card = document.createElement('div');
-        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] flex flex-col justify-between space-y-1 h-auto self-start w-full transition-all';
+        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] flex flex-col justify-between space-y-1 h-auto self-start w-full md:w-[calc(50%-0.375rem)] transition-all';
         card.innerHTML = `
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-[#8c9296] dark:text-[#9ca3af]">${time}</span>
@@ -366,7 +362,7 @@
               </label>
             ` : ''}
           </div>
-          <textarea rows="1" placeholder="Empty slot" data-time="${time}"
+          <textarea rows="1" placeholder="Empty slot" data-time="${time}" tabindex="${tabIndex}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
                     class="w-full bg-transparent text-sm text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
