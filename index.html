@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JL's Daily Organizer</title>
   <link rel="icon" type="image/png" href="favicon.png">
-  <!-- Google Fonts: Playfair Display for Serif Accents -->
+  <!-- Google Fonts: Playfair Display for Serif Section Headers -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
@@ -97,7 +97,7 @@
           
           <form id="task-form" class="flex gap-2 mb-4">
             <input type="text" id="task-input" placeholder="Add a task..." required
-                   class="flex-1 px-3 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] text-[#4a4e51] dark:text-[#e5e7eb] rounded-lg focus:outline-none focus:border-[#84a98c] dark:focus:border-[#a3b18a] text-sm font-serif">
+                   class="flex-1 px-3 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] text-[#4a4e51] dark:text-[#e5e7eb] rounded-lg focus:outline-none focus:border-[#84a98c] dark:focus:border-[#a3b18a] text-sm font-sans">
             <button type="submit" 
                     class="bg-[#84a98c] hover:bg-[#6b8e73] dark:bg-[#a3b18a] dark:hover:bg-[#84a98c] text-white dark:text-[#1e2022] px-4 py-2 rounded-lg text-sm font-medium transition">
               Add
@@ -136,7 +136,7 @@
           </div>
         </section>
 
-        <!-- External Sync Hub (Editable Google Tabs) -->
+        <!-- External Sync Hub -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
@@ -160,7 +160,7 @@
           </ul>
         </section>
 
-        <!-- macOS Reminders Shortcuts Cheat Sheet -->
+        <!-- macOS Reminders Shortcuts Cheat Sheet (Reordered) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
@@ -168,22 +168,6 @@
           </div>
           
           <div class="space-y-1.5 text-xs">
-            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Indent reminder</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ ]</kbd>
-            </div>
-            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Outdent reminder</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ [</kbd>
-            </div>
-            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Show all subtasks</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ E</kbd>
-            </div>
-            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Hide all subtasks</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ E</kbd>
-            </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Add tags</span>
               <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ T</kbd>
@@ -211,6 +195,22 @@
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due next week</span>
               <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ K</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Indent reminder</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ ]</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Outdent reminder</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ [</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Show all subtasks</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ E</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Hide all subtasks</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ E</kbd>
             </div>
           </div>
         </section>
@@ -351,14 +351,14 @@
         
         if (!res.ok) {
           const errorText = await res.text();
-          container.innerHTML = `<li class="text-xs text-red-500 py-2 font-serif">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
+          container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
           return;
         }
 
         const listsData = await res.json();
         if (!listsData.items || listsData.items.length === 0) {
           const tabLabel = currentData.tabNames[accNum] || `Account ${accNum}`;
-          container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2 font-serif">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
+          container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2 font-sans">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
           return;
         }
 
@@ -394,7 +394,7 @@
         renderSyncedTasks();
 
       } catch (err) {
-        container.innerHTML = `<li class="text-xs text-red-500 py-2 font-serif">JS Error: ${escapeHtml(err.message)}</li>`;
+        container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">JS Error: ${escapeHtml(err.message)}</li>`;
       }
     }
 
@@ -446,7 +446,7 @@
 
       if (allSynced.length === 0) {
         const tabLabel = (currentData.tabNames && currentData.tabNames[activeGoogleTab]) ? currentData.tabNames[activeGoogleTab] : `Account ${activeGoogleTab}`;
-        container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-serif italic">No synced items for ${escapeHtml(tabLabel)}</li>`;
+        container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-sans">No synced items for ${escapeHtml(tabLabel)}</li>`;
         return;
       }
 
@@ -458,7 +458,7 @@
           <div class="flex items-center gap-2 overflow-hidden pr-2">
             <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleSyncedTask('${item.id}', '${item.source}', this.checked)" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
             <span class="text-xs flex-shrink-0">${icon}</span>
-            <span class="text-xs font-serif break-words ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
+            <span class="text-xs font-sans break-words ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
           </div>
         `;
         container.appendChild(li);
@@ -648,7 +648,7 @@
           </div>
           <textarea rows="1" placeholder="Empty slot" data-time="${time}" tabindex="${tabIndex}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
-                    class="w-full bg-transparent text-sm font-serif text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
+                    class="w-full bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
 
@@ -706,7 +706,7 @@
       list.innerHTML = '';
 
       if (currentData.tasks.length === 0) {
-        list.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-xs text-center py-4 font-serif italic">No tasks recorded</li>`;
+        list.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-xs text-center py-4 font-sans italic">No tasks recorded</li>`;
       } else {
         const sortedTasks = [...currentData.tasks].sort((a, b) => Number(a.completed) - Number(b.completed));
 
@@ -716,7 +716,7 @@
           li.innerHTML = `
             <div class="flex items-center gap-2.5 overflow-hidden pr-2">
               <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
-              <span class="text-sm font-serif break-words ${task.completed ? 'line-through text-[#8c9296] dark:text-[#6b7280]' : 'text-[#4a4e51] dark:text-[#e5e7eb]'}">${escapeHtml(task.text)}</span>
+              <span class="text-sm font-sans break-words ${task.completed ? 'line-through text-[#8c9296] dark:text-[#6b7280]' : 'text-[#4a4e51] dark:text-[#e5e7eb]'}">${escapeHtml(task.text)}</span>
             </div>
             <button onclick="deleteTask(${task.id})" class="text-[#8c9296] hover:text-[#e07a5f] text-xs px-1 flex-shrink-0">✕</button>
           `;
