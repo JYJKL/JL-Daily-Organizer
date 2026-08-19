@@ -5,11 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JL's Daily Organizer</title>
   <link rel="icon" type="image/png" href="favicon.png">
+  <!-- Google Fonts: Playfair Display for Serif Accents -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    tailwind.config = { darkMode: 'class' }
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+          }
+        }
+      }
+    }
   </script>
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
@@ -19,16 +33,16 @@
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
       <div>
         <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-semibold text-[#383d40] dark:text-[#f3f4f6]">Daily Organizer</h1>
-          <span id="date-badge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e8e4dc] dark:bg-[#383b3e] text-[#4a4e51] dark:text-[#d1d5db]">Today</span>
+          <h1 class="text-2xl font-serif font-semibold text-[#84a98c] dark:text-[#a3b18a]">JL's Daily Organizer</h1>
+          <span id="date-badge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a]">Today</span>
           <span id="sync-status" class="text-xs text-[#84a98c] font-medium hidden">● Live Synced</span>
         </div>
-        <p id="current-date-display" class="text-[#8c9296] dark:text-[#9ca3af] text-sm mt-1"></p>
+        <p id="current-date-display" class="text-[#8c9296] dark:text-[#9ca3af] text-sm mt-1 font-serif italic"></p>
       </div>
       
       <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
         <!-- Date Selector -->
-        <div class="flex items-center gap-2 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 rounded-lg border border-[#e2dedc] dark:border-[#404347]">
+        <div class="flex items-center gap-2 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 rounded-lg border border-[#84a98c]/30 dark:border-[#a3b18a]/30">
           <label for="date-picker" class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] pl-1">Date:</label>
           <input type="date" id="date-picker" onchange="changeDate(this.value)" 
                  class="bg-transparent text-xs font-medium text-[#383d40] dark:text-[#f3f4f6] focus:outline-none cursor-pointer">
@@ -36,15 +50,15 @@
 
         <!-- Export File Button -->
         <button onclick="exportCurrentDayHTML()" title="Download today's state as a standalone named HTML file"
-                class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#e8e4dc] dark:hover:bg-[#404347] transition flex items-center justify-center">
-          <svg class="w-4 h-4 text-[#4a4e51] dark:text-[#d1d5db]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
+          <svg class="w-4 h-4 text-[#84a98c] dark:text-[#a3b18a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
           </svg>
         </button>
 
         <!-- Theme Toggle -->
         <button id="theme-toggle" onclick="toggleDarkMode()" title="Toggle Light/Dark Theme"
-                class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#e8e4dc] dark:hover:bg-[#404347] transition flex items-center justify-center">
+                class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
           <span id="theme-icon" class="text-sm">🌙</span>
         </button>
 
@@ -57,7 +71,7 @@
     </header>
 
     <!-- Banner for Historical View Mode -->
-    <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center">
+    <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#e07a5f]/40 dark:border-[#e07a5f]/40 p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center">
       <span>📜 Viewing archived entry for <strong id="archive-date-label" class="text-[#383d40] dark:text-[#f3f4f6]"></strong>. Edits auto-save to cloud.</span>
       <button onclick="goToToday()" class="text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline">Return to Today</button>
     </div>
@@ -68,8 +82,8 @@
       <!-- Timed Schedule -->
       <section class="lg:col-span-2 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
-          <span class="text-xs text-[#8c9296] dark:text-[#9ca3af]">Auto-saves as you type</span>
+          <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
+          <span class="text-xs text-[#84a98c] dark:text-[#a3b18a]">Auto-saves as you type</span>
         </div>
         <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-6 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
       </section>
@@ -79,11 +93,11 @@
         
         <!-- To-Do List -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-          <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
+          <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
           
           <form id="task-form" class="flex gap-2 mb-4">
             <input type="text" id="task-input" placeholder="Add a task..." required
-                   class="flex-1 px-3 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] text-[#4a4e51] dark:text-[#e5e7eb] rounded-lg focus:outline-none focus:border-[#9db4c0] dark:focus:border-[#829ab1] text-sm">
+                   class="flex-1 px-3 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] text-[#4a4e51] dark:text-[#e5e7eb] rounded-lg focus:outline-none focus:border-[#84a98c] dark:focus:border-[#a3b18a] text-sm font-serif">
             <button type="submit" 
                     class="bg-[#84a98c] hover:bg-[#6b8e73] dark:bg-[#a3b18a] dark:hover:bg-[#84a98c] text-white dark:text-[#1e2022] px-4 py-2 rounded-lg text-sm font-medium transition">
               Add
@@ -95,29 +109,29 @@
 
         <!-- Daily Habits -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-          <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">Habits & Routines</h2>
+          <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">Habits & Routines</h2>
           <div class="space-y-2">
-            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] transition border border-[#e2dedc] dark:border-[#404347]">
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] transition border border-[#84a98c]/20 dark:border-[#a3b18a]/20">
               <div class="flex items-center gap-2">
                 <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💧 Drink Water</span>
-                <span id="water-count" class="text-xs text-[#8c9296] dark:text-[#9ca3af] font-medium">(0/4)</span>
+                <span id="water-count" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-medium">(0/4)</span>
               </div>
-              <input type="checkbox" id="habit-water" disabled class="w-4 h-4 accent-[#9db4c0] dark:accent-[#829ab1] rounded cursor-not-allowed opacity-80">
+              <input type="checkbox" id="habit-water" disabled class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-not-allowed opacity-80">
             </label>
 
             <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
               <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💊 Take Drugs / Meds</span>
-              <input type="checkbox" id="habit-drugs" onchange="toggleHabit('drugs')" class="w-4 h-4 accent-[#9db4c0] dark:accent-[#829ab1] rounded">
+              <input type="checkbox" id="habit-drugs" onchange="toggleHabit('drugs')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
             </label>
 
             <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
               <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🏃 Exercise / Walk</span>
-              <input type="checkbox" id="habit-exercise" onchange="toggleHabit('exercise')" class="w-4 h-4 accent-[#9db4c0] dark:accent-[#829ab1] rounded">
+              <input type="checkbox" id="habit-exercise" onchange="toggleHabit('exercise')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
             </label>
 
             <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
               <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">📖 Read 15 Mins</span>
-              <input type="checkbox" id="habit-read" onchange="toggleHabit('read')" class="w-4 h-4 accent-[#9db4c0] dark:accent-[#829ab1] rounded">
+              <input type="checkbox" id="habit-read" onchange="toggleHabit('read')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
             </label>
           </div>
         </section>
@@ -125,19 +139,19 @@
         <!-- External Sync Hub (Editable Google Tabs) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
-            <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" class="text-xs bg-[#e8e4dc] dark:bg-[#383b3e] text-[#383d40] dark:text-[#f3f4f6] font-medium px-2.5 py-1 rounded-md hover:bg-[#dcd7cc] transition flex items-center gap-1">
+            <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
+            <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" class="text-xs bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] font-medium px-2.5 py-1 rounded-md hover:bg-[#84a98c]/30 transition flex items-center gap-1">
               <span>Connect Account</span>
             </button>
           </div>
 
-          <!-- Account Tabs with Edit Button -->
+          <!-- Account Tabs with Clean Text Edit Button -->
           <div class="flex items-center justify-between border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1">
             <div class="flex gap-2">
               <button id="tab-acc1-btn" onclick="switchGoogleTab(1)" class="text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition">Account 1</button>
               <button id="tab-acc2-btn" onclick="switchGoogleTab(2)" class="text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition">Account 2</button>
             </div>
-            <button onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#8c9296] hover:text-[#383d40] dark:hover:text-[#f3f4f6] px-1">✏️ Edit Tab</button>
+            <button onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline px-1">Edit Tab</button>
           </div>
 
           <!-- Synced Items List -->
@@ -149,54 +163,54 @@
         <!-- macOS Reminders Shortcuts Cheat Sheet -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
+            <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
             <a href="https://support.apple.com/guide/reminders/keyboard-shortcuts-remn19b3424c/mac" target="_blank" rel="noopener noreferrer" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline">Apple Docs ↗</a>
           </div>
           
           <div class="space-y-1.5 text-xs">
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Indent reminder</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ ]</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ ]</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Outdent reminder</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ [</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ [</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Show all subtasks</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ E</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ E</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Hide all subtasks</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ E</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ E</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Add tags</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ T</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ T</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Mark completed / incomplete</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ C</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ C</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Show / hide completed</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ H</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ H</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due today</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ T</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ T</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due tomorrow</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌥ ⌘ T</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌥ ⌘ T</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set overdue as due today</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌃ ⌘ T</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌃ ⌘ T</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due next week</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ K</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ K</kbd>
             </div>
           </div>
         </section>
@@ -213,6 +227,7 @@
 
     let supabaseClient = null;
     let activeGoogleTab = 1;
+    let googleAccessTokens = { 1: null, 2: null };
 
     const HOURS = [
       "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
@@ -297,7 +312,7 @@
 
     function handleGoogleAuthRedirect() {
       const redirectUri = window.location.origin + window.location.pathname;
-      const scope = "https://www.googleapis.com/auth/tasks.readonly";
+      const scope = "https://www.googleapis.com/auth/tasks";
       const state = `acc${activeGoogleTab}`;
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
@@ -319,6 +334,7 @@
         const targetAcc = state === "acc2" ? 2 : 1;
 
         if (accessToken) {
+          googleAccessTokens[targetAcc] = accessToken;
           window.history.replaceState(null, null, window.location.pathname);
           switchGoogleTab(targetAcc);
           await fetchGoogleTasks(accessToken, targetAcc);
@@ -335,14 +351,14 @@
         
         if (!res.ok) {
           const errorText = await res.text();
-          container.innerHTML = `<li class="text-xs text-red-500 py-2">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
+          container.innerHTML = `<li class="text-xs text-red-500 py-2 font-serif">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
           return;
         }
 
         const listsData = await res.json();
         if (!listsData.items || listsData.items.length === 0) {
           const tabLabel = currentData.tabNames[accNum] || `Account ${accNum}`;
-          container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
+          container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2 font-serif">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
           return;
         }
 
@@ -359,6 +375,7 @@
               .filter(t => t.title && t.title.trim() !== "")
               .map(t => ({
                 id: t.id,
+                listId: list.id,
                 title: t.title,
                 completed: t.status === 'completed',
                 source: 'google'
@@ -377,7 +394,42 @@
         renderSyncedTasks();
 
       } catch (err) {
-        container.innerHTML = `<li class="text-xs text-red-500 py-2">JS Error: ${escapeHtml(err.message)}</li>`;
+        container.innerHTML = `<li class="text-xs text-red-500 py-2 font-serif">JS Error: ${escapeHtml(err.message)}</li>`;
+      }
+    }
+
+    async function toggleSyncedTask(id, source, isChecked) {
+      if (source === 'google') {
+        const tasksKey = activeGoogleTab === 1 ? 'googleTasksAcc1' : 'googleTasksAcc2';
+        const task = (currentData[tasksKey] || []).find(t => t.id === id);
+
+        if (task) {
+          task.completed = isChecked;
+          saveActiveData();
+          renderSyncedTasks();
+
+          const token = googleAccessTokens[activeGoogleTab];
+          if (token && task.listId) {
+            try {
+              await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${task.listId}/tasks/${task.id}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  status: isChecked ? 'completed' : 'needsAction'
+                })
+              });
+            } catch (e) {
+              console.warn("Failed to sync completion to Google Tasks API:", e);
+            }
+          }
+        }
+      } else if (source === 'apple') {
+        currentData.appleReminders = (currentData.appleReminders || []).map(t => t.id === id ? { ...t, completed: isChecked } : t);
+        saveActiveData();
+        renderSyncedTasks();
       }
     }
 
@@ -389,22 +441,24 @@
       const currentGoogleTasks = activeGoogleTab === 1 ? (currentData.googleTasksAcc1 || []) : (currentData.googleTasksAcc2 || []);
       const appleItems = (currentData.appleReminders || []).map(i => ({ ...i, source: 'apple' }));
       const googleItems = currentGoogleTasks.map(i => ({ ...i, source: 'google' }));
-      const allSynced = [...appleItems, ...googleItems];
+      
+      const allSynced = [...appleItems, ...googleItems].sort((a, b) => Number(a.completed) - Number(b.completed));
 
       if (allSynced.length === 0) {
         const tabLabel = (currentData.tabNames && currentData.tabNames[activeGoogleTab]) ? currentData.tabNames[activeGoogleTab] : `Account ${activeGoogleTab}`;
-        container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3">No synced items for ${escapeHtml(tabLabel)}</li>`;
+        container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-serif italic">No synced items for ${escapeHtml(tabLabel)}</li>`;
         return;
       }
 
       allSynced.forEach(item => {
         const li = document.createElement('li');
-        li.className = "flex items-center justify-between p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]";
+        li.className = `flex items-center justify-between p-2 rounded-lg border border-[#e2dedc] dark:border-[#404347] ${item.completed ? 'bg-[#f8f6f0] dark:bg-[#323538] opacity-70' : 'bg-[#fefcf8] dark:bg-[#282a2d]'}`;
         const icon = item.source === 'apple' ? '🍎' : '🔵';
         li.innerHTML = `
-          <div class="flex items-center gap-2 overflow-hidden">
+          <div class="flex items-center gap-2 overflow-hidden pr-2">
+            <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleSyncedTask('${item.id}', '${item.source}', this.checked)" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
             <span class="text-xs flex-shrink-0">${icon}</span>
-            <span class="text-xs break-words ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
+            <span class="text-xs font-serif break-words ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
           </div>
         `;
         container.appendChild(li);
@@ -552,7 +606,7 @@
 
       if (selectedDate === today) {
         badge.textContent = "Today";
-        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#84a98c] text-white";
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a]";
         banner.classList.add('hidden');
       } else {
         badge.textContent = "Archived";
@@ -581,12 +635,12 @@
         const tabIndex = CHRONOLOGICAL_HOURS.indexOf(time) + 1;
 
         const card = document.createElement('div');
-        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] flex flex-col justify-between space-y-1 h-auto self-start w-full transition-all';
+        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border border-[#84a98c]/25 dark:border-[#a3b18a]/20 flex flex-col justify-between space-y-1 h-auto self-start w-full transition-all hover:border-[#84a98c]/50';
         card.innerHTML = `
           <div class="flex justify-between items-center">
-            <span class="text-xs font-semibold text-[#8c9296] dark:text-[#9ca3af]">${time}</span>
+            <span class="text-xs font-semibold text-[#84a98c] dark:text-[#a3b18a]">${time}</span>
             ${isWaterSlot ? `
-              <label class="flex items-center gap-1 cursor-pointer bg-[#e8e4dc] dark:bg-[#282a2d] px-1.5 py-0.5 rounded-md text-[10px] font-medium text-[#4a4e51] dark:text-[#d1d5db]">
+              <label class="flex items-center gap-1 cursor-pointer bg-[#84a98c]/10 dark:bg-[#282a2d] px-1.5 py-0.5 rounded-md text-[10px] font-medium text-[#6b8e73] dark:text-[#a3b18a]">
                 <span>💧 Water</span>
                 <input type="checkbox" ${waterChecked ? 'checked' : ''} onchange="toggleWaterSlot('${time}')" class="w-3 h-3 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer">
               </label>
@@ -594,7 +648,7 @@
           </div>
           <textarea rows="1" placeholder="Empty slot" data-time="${time}" tabindex="${tabIndex}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
-                    class="w-full bg-transparent text-sm text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
+                    class="w-full bg-transparent text-sm font-serif text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
 
@@ -652,7 +706,7 @@
       list.innerHTML = '';
 
       if (currentData.tasks.length === 0) {
-        list.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-xs text-center py-4">No tasks recorded</li>`;
+        list.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-xs text-center py-4 font-serif italic">No tasks recorded</li>`;
       } else {
         const sortedTasks = [...currentData.tasks].sort((a, b) => Number(a.completed) - Number(b.completed));
 
@@ -662,7 +716,7 @@
           li.innerHTML = `
             <div class="flex items-center gap-2.5 overflow-hidden pr-2">
               <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
-              <span class="text-sm break-words ${task.completed ? 'line-through text-[#8c9296] dark:text-[#6b7280]' : 'text-[#4a4e51] dark:text-[#e5e7eb]'}">${escapeHtml(task.text)}</span>
+              <span class="text-sm font-serif break-words ${task.completed ? 'line-through text-[#8c9296] dark:text-[#6b7280]' : 'text-[#4a4e51] dark:text-[#e5e7eb]'}">${escapeHtml(task.text)}</span>
             </div>
             <button onclick="deleteTask(${task.id})" class="text-[#8c9296] hover:text-[#e07a5f] text-xs px-1 flex-shrink-0">✕</button>
           `;
