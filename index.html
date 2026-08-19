@@ -122,7 +122,7 @@
           </div>
         </section>
 
-        <!-- External Sync Hub (Multi-Account Google Tasks) -->
+        <!-- External Sync Hub (Editable Google Tabs) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
@@ -131,10 +131,13 @@
             </button>
           </div>
 
-          <!-- Account Tabs -->
-          <div class="flex gap-2 border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1">
-            <button id="tab-acc1-btn" onclick="switchGoogleTab(1)" class="text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition">Account 1</button>
-            <button id="tab-acc2-btn" onclick="switchGoogleTab(2)" class="text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition">Account 2</button>
+          <!-- Account Tabs with Edit Button -->
+          <div class="flex items-center justify-between border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1">
+            <div class="flex gap-2">
+              <button id="tab-acc1-btn" onclick="switchGoogleTab(1)" class="text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition">Account 1</button>
+              <button id="tab-acc2-btn" onclick="switchGoogleTab(2)" class="text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition">Account 2</button>
+            </div>
+            <button onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#8c9296] hover:text-[#383d40] dark:hover:text-[#f3f4f6] px-1">✏️ Edit Tab</button>
           </div>
 
           <!-- Synced Items List -->
@@ -189,7 +192,7 @@
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set overdue as due today</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌃ ⌥ ⌘ T</kbd>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌃ ⌘ T</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due next week</span>
@@ -232,7 +235,8 @@
       habits: { water: false, drugs: false, exercise: false, read: false }, 
       appleReminders: [], 
       googleTasksAcc1: [],
-      googleTasksAcc2: []
+      googleTasksAcc2: [],
+      tabNames: { 1: "Account 1", 2: "Account 2" }
     };
     let saveTimeout = null;
     let isUserTyping = false;
@@ -257,6 +261,24 @@
         loadLocalFallback();
       }
     });
+
+    function renderTabLabels() {
+      const name1 = (currentData.tabNames && currentData.tabNames[1]) ? currentData.tabNames[1] : "Account 1";
+      const name2 = (currentData.tabNames && currentData.tabNames[2]) ? currentData.tabNames[2] : "Account 2";
+      document.getElementById('tab-acc1-btn').textContent = name1;
+      document.getElementById('tab-acc2-btn').textContent = name2;
+    }
+
+    function editCurrentTabName() {
+      const currentName = currentData.tabNames[activeGoogleTab] || `Account ${activeGoogleTab}`;
+      const newName = prompt(`Enter custom name for Tab ${activeGoogleTab}:`, currentName);
+      if (newName && newName.trim() !== "") {
+        currentData.tabNames = currentData.tabNames || { 1: "Account 1", 2: "Account 2" };
+        currentData.tabNames[activeGoogleTab] = newName.trim();
+        saveActiveData();
+        renderTabLabels();
+      }
+    }
 
     function switchGoogleTab(accNum) {
       activeGoogleTab = accNum;
@@ -319,7 +341,8 @@
 
         const listsData = await res.json();
         if (!listsData.items || listsData.items.length === 0) {
-          container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2">Account ${accNum} has 0 task lists.</li>`;
+          const tabLabel = currentData.tabNames[accNum] || `Account ${accNum}`;
+          container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
           return;
         }
 
@@ -369,7 +392,8 @@
       const allSynced = [...appleItems, ...googleItems];
 
       if (allSynced.length === 0) {
-        container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3">No synced items for Account ${activeGoogleTab}</li>`;
+        const tabLabel = (currentData.tabNames && currentData.tabNames[activeGoogleTab]) ? currentData.tabNames[activeGoogleTab] : `Account ${activeGoogleTab}`;
+        container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3">No synced items for ${escapeHtml(tabLabel)}</li>`;
         return;
       }
 
@@ -453,7 +477,8 @@
           habits: { water: false, drugs: false, exercise: false, read: false },
           appleReminders: [],
           googleTasksAcc1: [],
-          googleTasksAcc2: []
+          googleTasksAcc2: [],
+          tabNames: (prevData && prevData.tabNames) ? prevData.tabNames : { 1: "Account 1", 2: "Account 2" }
         };
         await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
       }
@@ -473,7 +498,7 @@
         if (row && row.data) {
           currentData = row.data;
         } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleTasksAcc1: [], googleTasksAcc2: [] };
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleTasksAcc1: [], googleTasksAcc2: [], tabNames: { 1: "Account 1", 2: "Account 2" } };
         }
       } else {
         loadLocalFallback();
@@ -486,6 +511,7 @@
       currentData.appleReminders = currentData.appleReminders || [];
       currentData.googleTasksAcc1 = currentData.googleTasksAcc1 || [];
       currentData.googleTasksAcc2 = currentData.googleTasksAcc2 || [];
+      currentData.tabNames = currentData.tabNames || { 1: "Account 1", 2: "Account 2" };
 
       updateHeaderUI(dateStr, today);
       renderAllUI();
@@ -495,6 +521,7 @@
       renderSchedule();
       renderTasks();
       renderHabits();
+      renderTabLabels();
       renderSyncedTasks();
     }
 
