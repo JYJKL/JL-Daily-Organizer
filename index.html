@@ -266,45 +266,57 @@
     }
 
     async function fetchGoogleTasks(accessToken) {
+  const container = document.getElementById('synced-tasks-list');
   try {
-    // 1. Fetch all task lists from your account
-    const listsRes = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
+    const res = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
-    const listsData = await listsRes.json();
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      container.innerHTML = `<li class="text-xs text-red-500 py-2">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
+      return;
+    }
+
+    const listsData = await res.json();
 
     if (!listsData.items || listsData.items.length === 0) {
-      console.log("No Google Task lists found.");
+      container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2">Google returned 0 task lists for this account.</li>`;
       return;
     }
 
     let allTasks = [];
 
-    // 2. Loop through every task list and pull incomplete tasks
     for (const list of listsData.items) {
-      const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?showCompleted=false`, {
+      const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?showCompleted=true&showHidden=true`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
       const tasksData = await tasksRes.json();
 
       if (tasksData.items) {
-        const formatted = tasksData.items.map(t => ({
-          id: t.id,
-          title: t.title || "Untitled Task",
-          completed: t.status === 'completed',
-          source: 'google'
-        }));
+        const formatted = tasksData.items
+          .filter(t => t.title && t.title.trim() !== "")
+          .map(t => ({
+            id: t.id,
+            title: t.title,
+            completed: t.status === 'completed',
+            source: 'google'
+          }));
         allTasks = allTasks.concat(formatted);
       }
     }
 
-    // 3. Save to state and refresh UI
+    if (allTasks.length === 0) {
+      container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2">Found ${listsData.items.length} list(s), but 0 active tasks inside.</li>`;
+      return;
+    }
+
     currentData.googleTasks = allTasks;
     saveActiveData();
     renderSyncedTasks();
 
   } catch (err) {
-    console.error("Failed to fetch Google Tasks:", err);
+    container.innerHTML = `<li class="text-xs text-red-500 py-2">JS Error: ${escapeHtml(err.message)}</li>`;
   }
 }
     function loadLocalFallback() {
