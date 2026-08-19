@@ -138,7 +138,7 @@
           </div>
         </section>
 
-        <!-- External Sync Hub -->
+        <!-- External Sync Hub (Dynamic Account Tabs) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
@@ -147,13 +147,13 @@
             </button>
           </div>
 
-          <!-- Account Tabs with Clean Text Edit Button -->
-          <div class="flex items-center justify-between border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1">
-            <div class="flex gap-2">
-              <button id="tab-acc1-btn" onclick="switchGoogleTab(1)" class="text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition">Account 1</button>
-              <button id="tab-acc2-btn" onclick="switchGoogleTab(2)" class="text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition">Account 2</button>
+          <!-- Account Tabs Bar -->
+          <div class="flex items-center justify-between border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1 gap-2 overflow-x-auto">
+            <div id="tabs-container" class="flex gap-1.5 flex-nowrap"></div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button onclick="addNewAccountTab()" title="Add dynamic Google account tab" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline px-1 font-sans">+ Add Tab</button>
+              <button id="edit-tab-btn" onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#8c9296] hover:text-[#383d40] dark:hover:text-[#f3f4f6] px-1 font-sans">Edit Tab</button>
             </div>
-            <button onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline px-1 font-sans">Edit Tab</button>
           </div>
 
           <!-- Synced Items List -->
@@ -228,8 +228,8 @@
     const GOOGLE_CLIENT_ID = "697333791699-1kqaohh8d49eqn7gmbldn1u9dl3q28nl.apps.googleusercontent.com";
 
     let supabaseClient = null;
-    let activeGoogleTab = 1;
-    let googleAccessTokens = { 1: null, 2: null };
+    let activeHubTab = 'apple'; // Default tab: Apple Reminders
+    let googleAccessTokens = {};
 
     const HOURS = [
       "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
@@ -251,9 +251,9 @@
       tasks: [], 
       habits: { water: false, drugs: false, exercise: false, read: false }, 
       appleReminders: [], 
-      googleTasksAcc1: [],
-      googleTasksAcc2: [],
-      tabNames: { 1: "Account 1", 2: "Account 2" }
+      googleAccountTasks: { 1: [], 2: [] },
+      tabList: ['apple', 'google_1', 'google_2'],
+      tabNames: { 'apple': "Apple Reminders", 'google_1': "Account 1", 'google_2': "Account 2" }
     };
     let saveTimeout = null;
     let isUserTyping = false;
@@ -280,42 +280,79 @@
     });
 
     function renderTabLabels() {
-      const name1 = (currentData.tabNames && currentData.tabNames[1]) ? currentData.tabNames[1] : "Account 1";
-      const name2 = (currentData.tabNames && currentData.tabNames[2]) ? currentData.tabNames[2] : "Account 2";
-      document.getElementById('tab-acc1-btn').textContent = name1;
-      document.getElementById('tab-acc2-btn').textContent = name2;
+      const container = document.getElementById('tabs-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+      const tabNames = currentData.tabNames || {};
+
+      tabList.forEach(tabKey => {
+        const name = tabNames[tabKey] || (tabKey === 'apple' ? "Apple Reminders" : tabKey.replace('google_', 'Account '));
+        const isActive = activeHubTab === tabKey;
+
+        const btn = document.createElement('button');
+        btn.textContent = name;
+        btn.onclick = () => switchHubTab(tabKey);
+        btn.className = isActive 
+          ? "text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition flex-shrink-0"
+          : "text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition flex-shrink-0";
+        container.appendChild(btn);
+      });
+
+      const editBtn = document.getElementById('edit-tab-btn');
+      if (editBtn) {
+        editBtn.style.display = (activeHubTab === 'apple') ? 'none' : 'inline-block';
+      }
+
+      const authBtn = document.getElementById('google-auth-btn');
+      if (authBtn) {
+        authBtn.style.display = (activeHubTab === 'apple') ? 'none' : 'flex';
+      }
+    }
+
+    function addNewAccountTab() {
+      const googleTabs = (currentData.tabList || []).filter(t => t.startsWith('google_'));
+      const newIndex = googleTabs.length + 1;
+      const newKey = `google_${newIndex}`;
+
+      currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+      if (!currentData.tabList.includes(newKey)) {
+        currentData.tabList.push(newKey);
+      }
+
+      currentData.tabNames = currentData.tabNames || {};
+      currentData.tabNames[newKey] = `Account ${newIndex}`;
+      currentData.googleAccountTasks = currentData.googleAccountTasks || {};
+      currentData.googleAccountTasks[newIndex] = [];
+
+      saveActiveData();
+      switchHubTab(newKey);
     }
 
     function editCurrentTabName() {
-      const currentName = currentData.tabNames[activeGoogleTab] || `Account ${activeGoogleTab}`;
-      const newName = prompt(`Enter custom name for Tab ${activeGoogleTab}:`, currentName);
+      if (activeHubTab === 'apple') return;
+      const currentName = currentData.tabNames[activeHubTab] || activeHubTab;
+      const newName = prompt("Enter custom name for active tab:", currentName);
       if (newName && newName.trim() !== "") {
-        currentData.tabNames = currentData.tabNames || { 1: "Account 1", 2: "Account 2" };
-        currentData.tabNames[activeGoogleTab] = newName.trim();
+        currentData.tabNames = currentData.tabNames || {};
+        currentData.tabNames[activeHubTab] = newName.trim();
         saveActiveData();
         renderTabLabels();
       }
     }
 
-    function switchGoogleTab(accNum) {
-      activeGoogleTab = accNum;
-      const btn1 = document.getElementById('tab-acc1-btn');
-      const btn2 = document.getElementById('tab-acc2-btn');
-
-      if (accNum === 1) {
-        btn1.className = "text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition";
-        btn2.className = "text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition";
-      } else {
-        btn2.className = "text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition";
-        btn1.className = "text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition";
-      }
+    function switchHubTab(tabKey) {
+      activeHubTab = tabKey;
+      renderTabLabels();
       renderSyncedTasks();
     }
 
     function handleGoogleAuthRedirect() {
+      if (activeHubTab === 'apple') return;
       const redirectUri = window.location.origin + window.location.pathname;
       const scope = "https://www.googleapis.com/auth/tasks";
-      const state = `acc${activeGoogleTab}`;
+      const state = activeHubTab; // e.g., 'google_1', 'google_2'
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
@@ -333,18 +370,18 @@
         const params = new URLSearchParams(hash.substring(1));
         const accessToken = params.get("access_token");
         const state = params.get("state");
-        const targetAcc = state === "acc2" ? 2 : 1;
+        const targetTab = state && state.startsWith('google_') ? state : 'google_1';
 
         if (accessToken) {
-          googleAccessTokens[targetAcc] = accessToken;
+          googleAccessTokens[targetTab] = accessToken;
           window.history.replaceState(null, null, window.location.pathname);
-          switchGoogleTab(targetAcc);
-          await fetchGoogleTasks(accessToken, targetAcc);
+          switchHubTab(targetTab);
+          await fetchGoogleTasks(accessToken, targetTab);
         }
       }
     }
 
-    async function fetchGoogleTasks(accessToken, accNum) {
+    async function fetchGoogleTasks(accessToken, tabKey) {
       const container = document.getElementById('synced-tasks-list');
       try {
         const res = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
@@ -359,7 +396,7 @@
 
         const listsData = await res.json();
         if (!listsData.items || listsData.items.length === 0) {
-          const tabLabel = currentData.tabNames[accNum] || `Account ${accNum}`;
+          const tabLabel = currentData.tabNames[tabKey] || tabKey;
           container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2 font-sans">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
           return;
         }
@@ -386,11 +423,9 @@
           }
         }
 
-        if (accNum === 1) {
-          currentData.googleTasksAcc1 = allTasks;
-        } else {
-          currentData.googleTasksAcc2 = allTasks;
-        }
+        const accNum = tabKey.replace('google_', '');
+        currentData.googleAccountTasks = currentData.googleAccountTasks || {};
+        currentData.googleAccountTasks[accNum] = allTasks;
 
         saveActiveData();
         renderSyncedTasks();
@@ -402,15 +437,15 @@
 
     async function toggleSyncedTask(id, source, isChecked) {
       if (source === 'google') {
-        const tasksKey = activeGoogleTab === 1 ? 'googleTasksAcc1' : 'googleTasksAcc2';
-        const task = (currentData[tasksKey] || []).find(t => t.id === id);
+        const accNum = activeHubTab.replace('google_', '');
+        const task = (currentData.googleAccountTasks && currentData.googleAccountTasks[accNum] || []).find(t => t.id === id);
 
         if (task) {
           task.completed = isChecked;
           saveActiveData();
           renderSyncedTasks();
 
-          const token = googleAccessTokens[activeGoogleTab];
+          const token = googleAccessTokens[activeHubTab];
           if (token && task.listId) {
             try {
               await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${task.listId}/tasks/${task.id}`, {
@@ -440,19 +475,25 @@
       if (!container) return;
       container.innerHTML = '';
 
-      const currentGoogleTasks = activeGoogleTab === 1 ? (currentData.googleTasksAcc1 || []) : (currentData.googleTasksAcc2 || []);
-      const appleItems = (currentData.appleReminders || []).map(i => ({ ...i, source: 'apple' }));
-      const googleItems = currentGoogleTasks.map(i => ({ ...i, source: 'google' }));
-      
-      const allSynced = [...appleItems, ...googleItems].sort((a, b) => Number(a.completed) - Number(b.completed));
+      let itemsToDisplay = [];
 
-      if (allSynced.length === 0) {
-        const tabLabel = (currentData.tabNames && currentData.tabNames[activeGoogleTab]) ? currentData.tabNames[activeGoogleTab] : `Account ${activeGoogleTab}`;
+      if (activeHubTab === 'apple') {
+        itemsToDisplay = (currentData.appleReminders || []).map(i => ({ ...i, source: 'apple' }));
+      } else {
+        const accNum = activeHubTab.replace('google_', '');
+        const gTasks = (currentData.googleAccountTasks && currentData.googleAccountTasks[accNum]) ? currentData.googleAccountTasks[accNum] : [];
+        itemsToDisplay = gTasks.map(i => ({ ...i, source: 'google' }));
+      }
+      
+      const sortedItems = itemsToDisplay.sort((a, b) => Number(a.completed) - Number(b.completed));
+
+      if (sortedItems.length === 0) {
+        const tabLabel = (currentData.tabNames && currentData.tabNames[activeHubTab]) ? currentData.tabNames[activeHubTab] : activeHubTab;
         container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-sans">No synced items for ${escapeHtml(tabLabel)}</li>`;
         return;
       }
 
-      allSynced.forEach(item => {
+      sortedItems.forEach(item => {
         const li = document.createElement('li');
         li.className = `flex items-center justify-between p-2 rounded-lg border border-[#e2dedc] dark:border-[#404347] ${item.completed ? 'bg-[#f8f6f0] dark:bg-[#323538] opacity-70' : 'bg-[#fefcf8] dark:bg-[#282a2d]'}`;
         const icon = item.source === 'apple' ? '🍎' : '🔵';
@@ -532,9 +573,9 @@
           tasks: rolledOverTasks,
           habits: { water: false, drugs: false, exercise: false, read: false },
           appleReminders: [],
-          googleTasksAcc1: [],
-          googleTasksAcc2: [],
-          tabNames: (prevData && prevData.tabNames) ? prevData.tabNames : { 1: "Account 1", 2: "Account 2" }
+          googleAccountTasks: { 1: [], 2: [] },
+          tabList: (prevData && prevData.tabList) ? prevData.tabList : ['apple', 'google_1', 'google_2'],
+          tabNames: (prevData && prevData.tabNames) ? prevData.tabNames : { 'apple': "Apple Reminders", 'google_1': "Account 1", 'google_2': "Account 2" }
         };
         await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
       }
@@ -554,7 +595,7 @@
         if (row && row.data) {
           currentData = row.data;
         } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleTasksAcc1: [], googleTasksAcc2: [], tabNames: { 1: "Account 1", 2: "Account 2" } };
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "Apple Reminders", 'google_1': "Account 1", 'google_2': "Account 2" } };
         }
       } else {
         loadLocalFallback();
@@ -565,9 +606,9 @@
       currentData.tasks = currentData.tasks || [];
       currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
       currentData.appleReminders = currentData.appleReminders || [];
-      currentData.googleTasksAcc1 = currentData.googleTasksAcc1 || [];
-      currentData.googleTasksAcc2 = currentData.googleTasksAcc2 || [];
-      currentData.tabNames = currentData.tabNames || { 1: "Account 1", 2: "Account 2" };
+      currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
+      currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+      currentData.tabNames = currentData.tabNames || { 'apple': "Apple Reminders", 'google_1': "Account 1", 'google_2': "Account 2" };
 
       updateHeaderUI(dateStr, today);
       renderAllUI();
