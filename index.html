@@ -27,12 +27,19 @@
       }
     }
   </script>
+  <style>
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .print-page-break { page-break-after: always; break-after: page; }
+    }
+  </style>
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   <div class="max-w-6xl mx-auto space-y-6">
     
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
       <div>
         <div class="flex items-center gap-3">
           <h1 class="text-2xl font-trajan tracking-wider font-semibold text-[#84a98c] dark:text-[#a3b18a] uppercase">JL's Daily Organizer</h1>
@@ -50,8 +57,8 @@
                  class="bg-transparent text-xs font-medium text-[#383d40] dark:text-[#f3f4f6] focus:outline-none cursor-pointer">
         </div>
 
-        <!-- Export File Button -->
-        <button onclick="exportCurrentDayHTML()" title="Download today's state as a standalone named HTML file"
+        <!-- Open Export Modal Button -->
+        <button onclick="openExportModal()" title="Export custom range or save to Google Drive / PDF / HTML"
                 class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
           <svg class="w-4 h-4 text-[#84a98c] dark:text-[#a3b18a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
@@ -73,7 +80,7 @@
     </header>
 
     <!-- Banner for Historical View Mode -->
-    <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#e07a5f]/40 dark:border-[#e07a5f]/40 p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center">
+    <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#e07a5f]/40 dark:border-[#e07a5f]/40 p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center no-print">
       <span>📜 Viewing archived entry for <strong id="archive-date-label" class="text-[#383d40] dark:text-[#f3f4f6]"></strong>. Edits auto-save to cloud.</span>
       <button onclick="goToToday()" class="text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline">Return to Today</button>
     </div>
@@ -85,7 +92,7 @@
       <section class="lg:col-span-2 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
-          <span class="text-xs text-[#84a98c] dark:text-[#a3b18a]">Auto-saves as you type</span>
+          <span class="text-xs text-[#84a98c] dark:text-[#a3b18a] no-print">Auto-saves as you type</span>
         </div>
         <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-6 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
       </section>
@@ -97,7 +104,7 @@
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
           
-          <form id="task-form" class="flex gap-2 mb-4">
+          <form id="task-form" class="flex gap-2 mb-4 no-print">
             <input type="text" id="task-input" placeholder="Add a task..." required
                    class="flex-1 px-3 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] text-[#4a4e51] dark:text-[#e5e7eb] rounded-lg focus:outline-none focus:border-[#84a98c] dark:focus:border-[#a3b18a] text-sm font-sans">
             <button type="submit" 
@@ -142,13 +149,13 @@
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
-            <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" class="text-xs bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] font-medium px-2.5 py-1 rounded-md hover:bg-[#84a98c]/30 transition flex items-center gap-1">
+            <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" class="text-xs bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] font-medium px-2.5 py-1 rounded-md hover:bg-[#84a98c]/30 transition flex items-center gap-1 no-print">
               <span>Connect Account</span>
             </button>
           </div>
 
           <!-- Account Tabs Bar -->
-          <div class="flex items-center justify-between border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1 gap-2 overflow-x-auto">
+          <div class="flex items-center justify-between border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1 gap-2 overflow-x-auto no-print">
             <div id="tabs-container" class="flex gap-1.5 flex-nowrap"></div>
             <div class="flex items-center gap-2 flex-shrink-0">
               <button onclick="addNewAccountTab()" title="Add dynamic Google account tab" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline px-1 font-sans">+ Add Tab</button>
@@ -163,7 +170,7 @@
         </section>
 
         <!-- macOS Reminders Shortcuts Cheat Sheet -->
-        <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
+        <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
             <a href="https://support.apple.com/guide/reminders/keyboard-shortcuts-remn19b3424c/mac" target="_blank" rel="noopener noreferrer" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline">Apple Docs ↗</a>
@@ -221,6 +228,57 @@
     </div>
   </div>
 
+  <!-- Export Dialog Modal -->
+  <div id="export-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 no-print">
+    <div class="bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
+      <div class="flex justify-between items-center border-b border-[#e2dedc] dark:border-[#404347] pb-3">
+        <h3 class="text-lg font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Batch Export Archives</h3>
+        <button onclick="closeExportModal()" class="text-[#8c9296] hover:text-[#383d40] dark:hover:text-[#f3f4f6] text-lg font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium mb-1 text-[#4a4e51] dark:text-[#d1d5db]">Export Scope:</label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="export-scope" value="range" checked onchange="toggleScopeInputs()" class="accent-[#84a98c]">
+              <span>Custom Date Range</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="export-scope" value="all" onchange="toggleScopeInputs()" class="accent-[#84a98c]">
+              <span>Export All Archives</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="range-inputs" class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-[#8c9296] mb-1">Start Date:</label>
+            <input type="date" id="export-start-date" class="w-full bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg p-2 text-xs">
+          </div>
+          <div>
+            <label class="block font-medium text-[#8c9296] mb-1">End Date:</label>
+            <input type="date" id="export-end-date" class="w-full bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg p-2 text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1 text-[#4a4e51] dark:text-[#d1d5db]">Output Format:</label>
+          <select id="export-format" class="w-full bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg p-2 text-xs text-[#4a4e51] dark:text-[#e5e7eb]">
+            <option value="drive">📁 Save directly to Google Drive (.json)</option>
+            <option value="html">Merged HTML File (.html)</option>
+            <option value="pdf">PDF Print View (Browser Print / Save PDF)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#e2dedc] dark:border-[#404347]">
+        <button onclick="closeExportModal()" class="px-3 py-1.5 rounded-lg border border-[#e2dedc] dark:border-[#404347] text-xs font-medium">Cancel</button>
+        <button onclick="executeBatchExport()" class="px-4 py-1.5 rounded-lg bg-[#84a98c] hover:bg-[#6b8e73] dark:bg-[#a3b18a] dark:hover:bg-[#84a98c] text-white dark:text-[#1e2022] text-xs font-semibold">Generate Export</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Database & OAuth Configuration
     const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co";
@@ -261,6 +319,8 @@
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       document.getElementById('date-picker').value = activeDate;
+      document.getElementById('export-start-date').value = activeDate;
+      document.getElementById('export-end-date').value = activeDate;
       renderAllUI();
 
       checkGoogleOAuthReturn();
@@ -278,6 +338,131 @@
         loadLocalFallback();
       }
     });
+
+    function openExportModal() { document.getElementById('export-modal').classList.remove('hidden'); }
+    function closeExportModal() { document.getElementById('export-modal').classList.add('hidden'); }
+    function toggleScopeInputs() {
+      const isAll = document.querySelector('input[name="export-scope"]:checked').value === 'all';
+      document.getElementById('range-inputs').style.display = isAll ? 'none' : 'grid';
+    }
+
+    async function executeBatchExport() {
+      const scope = document.querySelector('input[name="export-scope"]:checked').value;
+      const format = document.getElementById('export-format').value;
+      const startDate = document.getElementById('export-start-date').value;
+      const endDate = document.getElementById('export-end-date').value;
+
+      let records = [];
+
+      if (supabaseClient) {
+        let query = supabaseClient.from('organizer_data').select('date_key, data');
+        if (scope === 'range' && startDate && endDate) {
+          query = query.gte('date_key', startDate).lte('date_key', endDate);
+        }
+        const { data } = await query.order('date_key', { ascending: true });
+        records = data || [];
+      } else {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith('organizer_day_')) {
+            const dateStr = key.replace('organizer_day_', '');
+            if (scope === 'all' || (dateStr >= startDate && dateStr <= endDate)) {
+              records.push({ date_key: dateStr, data: JSON.parse(localStorage.getItem(key)) });
+            }
+          }
+        }
+        records.sort((a, b) => a.date_key.localeCompare(b.date_key));
+      }
+
+      if (records.length === 0) {
+        alert("No archives found for the selected range.");
+        return;
+      }
+
+      closeExportModal();
+
+      if (format === 'drive') {
+        await saveArchivesToGoogleDrive(records);
+      } else if (format === 'html') {
+        exportRecordsAsHTML(records);
+      } else if (format === 'pdf') {
+        exportRecordsAsPrintPDF(records);
+      }
+    }
+
+    async function saveArchivesToGoogleDrive(records) {
+      const activeToken = googleAccessTokens[activeHubTab] || Object.values(googleAccessTokens)[0];
+
+      if (!activeToken) {
+        alert("Please click 'Connect Account' in the Synced Tasks Hub first to authenticate your Google Drive access.");
+        handleGoogleAuthRedirect();
+        return;
+      }
+
+      const fileName = `Organizer_Backup_${records[0].date_key}_to_${records[records.length - 1].date_key}.json`;
+      const fileContent = JSON.stringify(records, null, 2);
+
+      try {
+        const metadata = { name: fileName, mimeType: 'application/json' };
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', new Blob([fileContent], { type: 'application/json' }));
+
+        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${activeToken}` },
+          body: form
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          alert(`Successfully saved backup directly to your Google Drive! File ID: ${result.id}`);
+        } else {
+          const errText = await res.text();
+          alert(`Google Drive API error (${res.status}): ${errText}`);
+        }
+      } catch (e) {
+        alert(`Failed to save to Google Drive: ${e.message}`);
+      }
+    }
+
+    function exportRecordsAsHTML(records) {
+      let mergedContent = records.map(r => generateArchiveDayHTML(r.date_key, r.data)).join('<div style="page-break-after: always; margin-bottom: 40px; border-bottom: 2px dashed #ccc;"></div>');
+      const htmlDoc = `<!DOCTYPE html><html><head><title>JL Organizer Archives</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="p-8 bg-[#f5f2eb] font-sans">${mergedContent}</body></html>`;
+      
+      const blob = new Blob([htmlDoc], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Organizer_Archives_${records[0].date_key}_to_${records[records.length - 1].date_key}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    function exportRecordsAsPrintPDF(records) {
+      const printWin = window.open('', '_blank');
+      let mergedContent = records.map(r => generateArchiveDayHTML(r.date_key, r.data)).join('<div style="page-break-after: always; break-after: page;"></div>');
+      printWin.document.write(`<!DOCTYPE html><html><head><title>Print Archives</title><script src="https://cdn.tailwindcss.com"><\/script><style>@media print { body { background: white !important; } }</style></head><body class="p-8 bg-white text-black font-sans">${mergedContent}</body></html>`);
+      printWin.document.close();
+      setTimeout(() => { printWin.print(); }, 1000);
+    }
+
+    function generateArchiveDayHTML(dateKey, data) {
+      const schedule = data.schedule || {};
+      const tasks = data.tasks || [];
+      
+      let scheduleHtml = HOURS.map(t => `<div class="p-2 border rounded"><strong>${t}:</strong> ${escapeHtml(schedule[t] || '')}</div>`).join('');
+      let tasksHtml = tasks.map(t => `<li>[${t.completed ? '✔' : ' '}] ${escapeHtml(t.text)}</li>`).join('');
+
+      return `
+        <div class="max-w-4xl mx-auto space-y-4 font-sans bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h2 class="text-2xl font-bold text-[#84a98c]">Archive: ${dateKey}</h2>
+          <div class="grid grid-cols-2 gap-2 text-sm">${scheduleHtml}</div>
+          <div class="mt-4"><h3 class="font-semibold text-lg">To-Do List:</h3><ul class="list-disc pl-5">${tasksHtml || '<li>No tasks</li>'}</ul></div>
+        </div>
+      `;
+    }
 
     function renderTabLabels() {
       const container = document.getElementById('tabs-container');
@@ -351,7 +536,7 @@
     function handleGoogleAuthRedirect() {
       if (activeHubTab === 'apple') return;
       const redirectUri = window.location.origin + window.location.pathname;
-      const scope = "https://www.googleapis.com/auth/tasks";
+      const scope = "https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/drive.file";
       const state = activeHubTab;
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
@@ -759,7 +944,7 @@
               <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
               <span class="text-sm font-sans break-words ${task.completed ? 'line-through text-[#8c9296] dark:text-[#6b7280]' : 'text-[#4a4e51] dark:text-[#e5e7eb]'}">${escapeHtml(task.text)}</span>
             </div>
-            <button onclick="deleteTask(${task.id})" class="text-[#8c9296] hover:text-[#e07a5f] text-xs px-1 flex-shrink-0">✕</button>
+            <button onclick="deleteTask(${task.id})" class="text-[#8c9296] hover:text-[#e07a5f] text-xs px-1 flex-shrink-0 no-print">✕</button>
           `;
           list.appendChild(li);
         });
@@ -810,19 +995,6 @@
       });
 
       updateProgress();
-    }
-
-    function exportCurrentDayHTML() {
-      const fileName = `${activeDate}.html`;
-      const docHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-      const blob = new Blob([docHtml], { type: 'text/html' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
     }
 
     function initTheme() { applyTheme(localStorage.getItem('organizer_dark') === 'true'); }
