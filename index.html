@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JL's Daily Organizer</title>
   <link rel="icon" type="image/png" href="favicon.png">
-  <!-- Google Fonts: Playfair Display for Serif Section Headers -->
+  
+  <!-- Google Fonts: Cinzel (Trajan Pro style) & EB Garamond -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase Client Library -->
@@ -19,7 +20,8 @@
       theme: {
         extend: {
           fontFamily: {
-            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            trajan: ['Cinzel', '"Trajan Pro"', 'Georgia', 'serif'],
+            garamond: ['"EB Garamond"', 'Garamond', 'Georgia', 'serif'],
           }
         }
       }
@@ -33,11 +35,11 @@
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
       <div>
         <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-serif font-semibold text-[#84a98c] dark:text-[#a3b18a]">JL's Daily Organizer</h1>
+          <h1 class="text-2xl font-trajan tracking-wider font-semibold text-[#84a98c] dark:text-[#a3b18a] uppercase">JL's Daily Organizer</h1>
           <span id="date-badge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a]">Today</span>
           <span id="sync-status" class="text-xs text-[#84a98c] font-medium hidden">● Live Synced</span>
         </div>
-        <p id="current-date-display" class="text-[#8c9296] dark:text-[#9ca3af] text-sm mt-1 font-serif italic"></p>
+        <p id="current-date-display" class="text-[#8c9296] dark:text-[#9ca3af] text-sm mt-1 font-garamond italic"></p>
       </div>
       
       <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
@@ -82,7 +84,7 @@
       <!-- Timed Schedule -->
       <section class="lg:col-span-2 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
+          <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks (9:00 AM – 8:00 PM)</h2>
           <span class="text-xs text-[#84a98c] dark:text-[#a3b18a]">Auto-saves as you type</span>
         </div>
         <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-6 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
@@ -93,7 +95,7 @@
         
         <!-- To-Do List -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-          <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
+          <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
           
           <form id="task-form" class="flex gap-2 mb-4">
             <input type="text" id="task-input" placeholder="Add a task..." required
@@ -109,7 +111,7 @@
 
         <!-- Daily Habits -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-          <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6] mb-4">Habits & Routines</h2>
+          <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6] mb-4">Habits & Routines</h2>
           <div class="space-y-2">
             <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] transition border border-[#84a98c]/20 dark:border-[#a3b18a]/20">
               <div class="flex items-center gap-2">
@@ -139,7 +141,7 @@
         <!-- External Sync Hub -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
+            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
             <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" class="text-xs bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] font-medium px-2.5 py-1 rounded-md hover:bg-[#84a98c]/30 transition flex items-center gap-1">
               <span>Connect Account</span>
             </button>
@@ -151,7 +153,7 @@
               <button id="tab-acc1-btn" onclick="switchGoogleTab(1)" class="text-xs font-semibold px-2 py-1 rounded-md bg-[#84a98c] text-white transition">Account 1</button>
               <button id="tab-acc2-btn" onclick="switchGoogleTab(2)" class="text-xs font-semibold px-2 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition">Account 2</button>
             </div>
-            <button onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline px-1">Edit Tab</button>
+            <button onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline px-1 font-sans">Edit Tab</button>
           </div>
 
           <!-- Synced Items List -->
@@ -160,14 +162,14 @@
           </ul>
         </section>
 
-        <!-- macOS Reminders Shortcuts Cheat Sheet (Reordered) -->
+        <!-- macOS Reminders Shortcuts Cheat Sheet -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-lg font-serif font-medium text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
+            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
             <a href="https://support.apple.com/guide/reminders/keyboard-shortcuts-remn19b3424c/mac" target="_blank" rel="noopener noreferrer" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline">Apple Docs ↗</a>
           </div>
           
-          <div class="space-y-1.5 text-xs">
+          <div class="space-y-1.5 text-xs font-sans">
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Add tags</span>
               <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ T</kbd>
