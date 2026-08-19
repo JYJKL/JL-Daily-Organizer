@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google API Client -->
+  <!-- Google API Identity Services Library -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
     tailwind.config = { darkMode: 'class' }
@@ -128,13 +128,13 @@
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-medium text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
-            <button id="google-auth-btn" onclick="handleGoogleAuth()" class="text-xs bg-[#e8e4dc] dark:bg-[#383b3e] px-2 py-1 rounded hover:bg-[#dcd7cc] transition">
-              Connect Google
+            <button id="google-auth-btn" onclick="handleGoogleAuth()" class="text-xs bg-[#e8e4dc] dark:bg-[#383b3e] text-[#383d40] dark:text-[#f3f4f6] font-medium px-2.5 py-1 rounded-md hover:bg-[#dcd7cc] transition flex items-center gap-1">
+              <span>Google Tasks</span>
             </button>
           </div>
 
           <!-- Synced Items List -->
-          <ul id="synced-tasks-list" class="space-y-2 text-xs">
+          <ul id="synced-tasks-list" class="space-y-2 text-xs max-h-[200px] overflow-y-auto pr-1">
             <li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3">No synced tasks loaded</li>
           </ul>
         </section>
@@ -156,12 +156,36 @@
               <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ [</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Show all subtasks</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ E</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Hide all subtasks</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ E</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Mark completed / incomplete</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ C</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Show / hide completed</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ H</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due today</span>
               <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ T</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
               <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due tomorrow</span>
               <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌥ ⌘ T</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set overdue as due today</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌃ ⌥ ⌘ T</kbd>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due next week</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold border border-[#d2cecf] dark:border-[#404347]">⌘ K</kbd>
             </div>
           </div>
         </section>
@@ -171,10 +195,13 @@
   </div>
 
   <script>
+    // Database & OAuth Configuration
     const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g";
+    const GOOGLE_CLIENT_ID = "697333791699-1kqaohh8d49eqn7gmbldn1u9dl3q28nl.apps.googleusercontent.com";
 
     let supabaseClient = null;
+    let tokenClient = null;
 
     const HOURS = [
       "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
@@ -190,7 +217,7 @@
     }
 
     let activeDate = getTodayString();
-    let currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [] };
+    let currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleTasks: [] };
     let saveTimeout = null;
     let isUserTyping = false;
 
@@ -277,7 +304,8 @@
           waterCheckmarks: {},
           tasks: rolledOverTasks,
           habits: { water: false, drugs: false, exercise: false, read: false },
-          appleReminders: []
+          appleReminders: [],
+          googleTasks: []
         };
         await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
       }
@@ -297,7 +325,7 @@
         if (row && row.data) {
           currentData = row.data;
         } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [] };
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleTasks: [] };
         }
       } else {
         loadLocalFallback();
@@ -308,6 +336,7 @@
       currentData.tasks = currentData.tasks || [];
       currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
       currentData.appleReminders = currentData.appleReminders || [];
+      currentData.googleTasks = currentData.googleTasks || [];
 
       updateHeaderUI(dateStr, today);
       renderAllUI();
@@ -320,24 +349,65 @@
       renderSyncedTasks();
     }
 
+    function handleGoogleAuth() {
+      if (!window.google) {
+        alert("Google API library is still initializing. Please wait a moment and try again.");
+        return;
+      }
+
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/tasks.readonly',
+        callback: async (response) => {
+          if (response.access_token) {
+            document.getElementById('google-auth-btn').textContent = "Connected ✓";
+            await fetchGoogleTasks(response.access_token);
+          }
+        },
+      });
+
+      tokenClient.requestAccessToken();
+    }
+
+    async function fetchGoogleTasks(accessToken) {
+      try {
+        const res = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists/@default/tasks', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const data = await res.json();
+        
+        if (data.items) {
+          currentData.googleTasks = data.items.map(t => ({ id: t.id, title: t.title, completed: t.status === 'completed' }));
+          saveActiveData();
+          renderSyncedTasks();
+        }
+      } catch (err) {
+        console.error("Failed to fetch Google Tasks:", err);
+      }
+    }
+
     function renderSyncedTasks() {
       const container = document.getElementById('synced-tasks-list');
       if (!container) return;
       container.innerHTML = '';
 
-      const items = currentData.appleReminders || [];
-      if (items.length === 0) {
+      const appleItems = (currentData.appleReminders || []).map(i => ({ ...i, source: 'apple' }));
+      const googleItems = (currentData.googleTasks || []).map(i => ({ ...i, source: 'google' }));
+      const allSynced = [...appleItems, ...googleItems];
+
+      if (allSynced.length === 0) {
         container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3">No synced Apple/Google items yet</li>`;
         return;
       }
 
-      items.forEach(item => {
+      allSynced.forEach(item => {
         const li = document.createElement('li');
         li.className = "flex items-center justify-between p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]";
+        const icon = item.source === 'apple' ? '🍎' : '🔵';
         li.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="text-xs">🍎</span>
-            <span class="text-xs ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
+          <div class="flex items-center gap-2 overflow-hidden">
+            <span class="text-xs flex-shrink-0">${icon}</span>
+            <span class="text-xs break-words ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
           </div>
         `;
         container.appendChild(li);
