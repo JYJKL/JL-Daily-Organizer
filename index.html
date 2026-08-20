@@ -36,14 +36,27 @@
     }
   </style>
 
-  <!-- PWA Service Worker Registration -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('Service Worker failed:', err));
+  <!-- PWA Service Worker Registration with Auto-Reload -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        // Check for sw.js updates every time the app loads or gets focused
+        reg.update();
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // Automatically reload the page once the new cache is ready
+              window.location.reload();
+            }
+          });
+        });
       });
-    }
-  </script>
+    });
+  }
+</script>
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   <div class="max-w-6xl mx-auto space-y-6">
