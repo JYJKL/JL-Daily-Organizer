@@ -322,7 +322,7 @@
       schedule: {}, 
       waterCheckmarks: {}, 
       tasks: [], 
-      habits: { water: false, drugs: false, exercise: false, read: false }, 
+      habits: { water: false, brush: false, drugs: false, exercise: false, read: false }, 
       appleReminders: [], 
       googleAccountTasks: { 1: [], 2: [] },
       tabList: ['apple', 'google_1', 'google_2'],
@@ -788,7 +788,7 @@
           schedule: {},
           waterCheckmarks: {},
           tasks: rolledOverTasks,
-          habits: { water: false, drugs: false, exercise: false, read: false },
+          habits: { water: false, brush: false, drugs: false, exercise: false, read: false },
           appleReminders: [],
           googleAccountTasks: { 1: [], 2: [] },
           tabList: (prevData && prevData.tabList) ? prevData.tabList : ['apple', 'google_1', 'google_2'],
@@ -799,37 +799,65 @@
     }
 
     async function loadDateData(dateStr) {
-      activeDate = dateStr;
-      const today = getTodayString();
+  activeDate = dateStr;
+  const today = getTodayString();
 
-      if (supabaseClient) {
-        const { data: row } = await supabaseClient
-          .from('organizer_data')
-          .select('data')
-          .eq('date_key', dateStr)
-          .maybeSingle();
+  if (supabaseClient) {
+    const { data: row } = await supabaseClient
+      .from('organizer_data')
+      .select('data')
+      .eq('date_key', dateStr)
+      .maybeSingle();
 
-        if (row && row.data) {
-          currentData = row.data;
-        } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" } };
-        }
-      } else {
-        loadLocalFallback();
-      }
-
-      currentData.schedule = currentData.schedule || {};
-      currentData.waterCheckmarks = currentData.waterCheckmarks || {};
-      currentData.tasks = currentData.tasks || [];
-      currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
-      currentData.appleReminders = currentData.appleReminders || [];
-      currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
-      currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
-      currentData.tabNames = currentData.tabNames || { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" };
-
-      updateHeaderUI(dateStr, today);
-      renderAllUI();
+    if (row && row.data) {
+      currentData = row.data;
+    } else {
+      currentData = { 
+        schedule: {}, 
+        waterCheckmarks: {}, 
+        tasks: [], 
+        // 1. ADD YOUR NEW HABIT TO FRESH DAYS HERE:
+        habits: { water: false, brush: false, drugs: false, exercise: false, read: false, myNewHabit: false }, 
+        appleReminders: [], 
+        googleAccountTasks: { 1: [], 2: [] }, 
+        tabList: ['apple', 'google_1', 'google_2'], 
+        // 2. UPDATE DEFAULT TAB NAMES HERE:
+        tabNames: { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" } 
+      };
     }
+  } else {
+    loadLocalFallback();
+  }
+
+  // ENSURE EXISTING DATABASE ROWS GET THE NEW HABIT KEY
+  currentData.schedule = currentData.schedule || {};
+  currentData.waterCheckmarks = currentData.waterCheckmarks || {};
+  currentData.tasks = currentData.tasks || [];
+  
+  // MERGE HABITS: Preserves existing checked statuses while adding missing new habits
+  currentData.habits = Object.assign({ 
+    water: false,
+    brush: false,
+    drugs: false, 
+    exercise: false, 
+    read: false, 
+    myNewHabit: false // <-- Add your new habit key here too
+  }, currentData.habits || {});
+
+  currentData.appleReminders = currentData.appleReminders || [];
+  currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
+  currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+  
+  // MERGE TAB NAMES: Preserves existing custom tab names while updating missing defaults
+  currentData.tabNames = Object.assign({ 
+    'apple': "🍎", 
+    'google_1': "JYJL", 
+    'google_2': "MYRA" 
+  }, currentData.tabNames || {});
+
+  updateHeaderUI(dateStr, today);
+  renderAllUI();
+}
 
     function renderAllUI() {
       renderSchedule();
@@ -999,7 +1027,7 @@
       const waterCheckedCount = WATER_SLOTS.filter(slot => currentData.waterCheckmarks && currentData.waterCheckmarks[slot]).length;
       completedItems += (waterCheckedCount * 0.25);
 
-      const habitKeys = ['drugs', 'exercise', 'read'];
+      const habitKeys = ['brush', 'drugs', 'exercise', 'read'];
       totalItems += habitKeys.length;
 
       habitKeys.forEach(key => {
@@ -1023,7 +1051,7 @@
       document.getElementById('water-count').textContent = `(${completedCount}/${WATER_SLOTS.length})`;
       document.getElementById('habit-water').checked = (completedCount === WATER_SLOTS.length);
       
-      ['drugs', 'exercise', 'read'].forEach(key => {
+      ['brush', 'drugs', 'exercise', 'read'].forEach(key => {
         const el = document.getElementById(`habit-${key}`);
         if (el) el.checked = !!(currentData.habits && currentData.habits[key]);
       });
