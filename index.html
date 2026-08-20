@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JL's Daily Organizer</title>
   <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="manifest" href="manifest.json">
   
   <!-- Google Fonts: Cinzel (Trajan Pro style) & EB Garamond -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,6 +35,15 @@
       .print-page-break { page-break-after: always; break-after: page; }
     }
   </style>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('Service Worker failed:', err));
+      });
+    }
+  </script>
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   <div class="max-w-6xl mx-auto space-y-6">
