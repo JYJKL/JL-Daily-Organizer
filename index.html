@@ -697,7 +697,44 @@
       }
     }
 
-    function renderSyncedTasks() {
+  async function loadDateData(dateStr) {
+  activeDate = dateStr;
+  const today = getTodayString();
+
+  if (supabaseClient) {
+    const { data: row } = await supabaseClient
+      .from('organizer_data')
+      .select('data')
+      .eq('date_key', dateStr)
+      .maybeSingle();
+
+    if (row && row.data) {
+      currentData = row.data;
+      // Handle payload nesting from Supabase REST API upserts
+      if (currentData.data) {
+        currentData = { ...currentData, ...currentData.data };
+      }
+    } else {
+      currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" } };
+    }
+  } else {
+    loadLocalFallback();
+  }
+
+  currentData.schedule = currentData.schedule || {};
+  currentData.waterCheckmarks = currentData.waterCheckmarks || {};
+  currentData.tasks = currentData.tasks || [];
+  currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
+  currentData.appleReminders = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+  currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
+  currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+  currentData.tabNames = currentData.tabNames || { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" };
+
+  updateHeaderUI(dateStr, today);
+  renderAllUI();
+}
+
+function renderSyncedTasks() {
   const container = document.getElementById('synced-tasks-list');
   if (!container) return;
   container.innerHTML = '';
@@ -705,9 +742,8 @@
   let itemsToDisplay = [];
 
   if (activeHubTab === 'apple') {
-    // Check both currentData.appleReminders AND nested data.appleReminders
-    const appleData = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
-    itemsToDisplay = appleData.map(i => ({
+    const rawList = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+    itemsToDisplay = rawList.map(i => ({
       id: i.id || i.title,
       title: i.title || i.text || 'Untitled Task',
       completed: !!i.completed,
@@ -739,7 +775,6 @@
     container.appendChild(li);
   });
 }
-
     function loadLocalFallback() {
       const local = localStorage.getItem(`organizer_day_${activeDate}`);
       if (local) {
@@ -814,37 +849,83 @@
     }
 
     async function loadDateData(dateStr) {
-      activeDate = dateStr;
-      const today = getTodayString();
+  activeDate = dateStr;
+  const today = getTodayString();
 
-      if (supabaseClient) {
-        const { data: row } = await supabaseClient
-          .from('organizer_data')
-          .select('data')
-          .eq('date_key', dateStr)
-          .maybeSingle();
+  if (supabaseClient) {
+    const { data: row } = await supabaseClient
+      .from('organizer_data')
+      .select('data')
+      .eq('date_key', dateStr)
+      .maybeSingle();
 
-        if (row && row.data) {
-          currentData = row.data;
-        } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" } };
-        }
-      } else {
-        loadLocalFallback();
+    if (row && row.data) {
+      currentData = row.data;
+      // Handle payload nesting from Supabase REST API upserts
+      if (currentData.data) {
+        currentData = { ...currentData, ...currentData.data };
       }
-
-      currentData.schedule = currentData.schedule || {};
-      currentData.waterCheckmarks = currentData.waterCheckmarks || {};
-      currentData.tasks = currentData.tasks || [];
-      currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
-      currentData.appleReminders = currentData.appleReminders || [];
-      currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
-      currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
-      currentData.tabNames = currentData.tabNames || { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" };
-
-      updateHeaderUI(dateStr, today);
-      renderAllUI();
+    } else {
+      currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" } };
     }
+  } else {
+    loadLocalFallback();
+  }
+
+  currentData.schedule = currentData.schedule || {};
+  currentData.waterCheckmarks = currentData.waterCheckmarks || {};
+  currentData.tasks = currentData.tasks || [];
+  currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
+  currentData.appleReminders = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+  currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
+  currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+  currentData.tabNames = currentData.tabNames || { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" };
+
+  updateHeaderUI(dateStr, today);
+  renderAllUI();
+}
+
+function renderSyncedTasks() {
+  const container = document.getElementById('synced-tasks-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  let itemsToDisplay = [];
+
+  if (activeHubTab === 'apple') {
+    const rawList = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+    itemsToDisplay = rawList.map(i => ({
+      id: i.id || i.title,
+      title: i.title || i.text || 'Untitled Task',
+      completed: !!i.completed,
+      source: 'apple'
+    }));
+  } else {
+    const accNum = activeHubTab.replace('google_', '');
+    const gTasks = (currentData.googleAccountTasks && currentData.googleAccountTasks[accNum]) ? currentData.googleAccountTasks[accNum] : [];
+    itemsToDisplay = gTasks.map(i => ({ ...i, source: 'google' }));
+  }
+  
+  const sortedItems = itemsToDisplay.sort((a, b) => Number(a.completed) - Number(b.completed));
+
+  if (sortedItems.length === 0) {
+    const tabLabel = (currentData.tabNames && currentData.tabNames[activeHubTab]) ? currentData.tabNames[activeHubTab] : activeHubTab;
+    container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-sans">No synced items for ${escapeHtml(tabLabel)}</li>`;
+    return;
+  }
+
+  sortedItems.forEach(item => {
+    const li = document.createElement('li');
+    li.className = `flex items-center justify-between p-2 rounded-lg border border-[#e2dedc] dark:border-[#404347] ${item.completed ? 'bg-[#f8f6f0] dark:bg-[#323538] opacity-70' : 'bg-[#fefcf8] dark:bg-[#282a2d]'}`;
+    li.innerHTML = `
+      <div class="flex items-center gap-2 overflow-hidden pr-2">
+        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleSyncedTask('${escapeHtml(item.id)}', '${item.source}', this.checked)" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
+        <span class="text-xs font-sans break-words ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
+      </div>
+    `;
+    container.appendChild(li);
+  });
+}
 
     function renderAllUI() {
       renderSchedule();
