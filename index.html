@@ -142,7 +142,7 @@
               <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🪥 Brush Teeth </span>
               <input type="checkbox" id="habit-brush" onchange="toggleHabit('brush')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
             </label>
-
+            
             <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
               <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💊 Take Drugs / Meds</span>
               <input type="checkbox" id="habit-drugs" onchange="toggleHabit('drugs')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
@@ -280,7 +280,7 @@
         <div>
           <label class="block font-medium mb-1 text-[#4a4e51] dark:text-[#d1d5db]">Output Format:</label>
           <select id="export-format" class="w-full bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg p-2 text-xs text-[#4a4e51] dark:text-[#e5e7eb]">
-            <option value="drive">📁 Save to "JL's Organizer Backups" folder in Drive (.json)</option>
+            <option value="drive">📁 Save to Designated Backup Folder in Drive (.json)</option>
             <option value="html">Merged HTML File (.html)</option>
             <option value="pdf">PDF Print View (Browser Print / Save PDF)</option>
           </select>
@@ -315,16 +315,6 @@
     function getTodayString() {
       const today = new Date();
       return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    }
-
-    // Normalizer to flatten data regardless of REST payload nesting
-    function normalizeDataStructure(raw) {
-      if (!raw) return {};
-      let obj = { ...raw };
-      if (obj.data && typeof obj.data === 'object' && !Array.isArray(obj.data)) {
-        obj = { ...obj, ...obj.data };
-      }
-      return obj;
     }
 
     let activeDate = getTodayString();
@@ -385,14 +375,14 @@
           query = query.gte('date_key', startDate).lte('date_key', endDate);
         }
         const { data } = await query.order('date_key', { ascending: true });
-        records = (data || []).map(r => ({ date_key: r.date_key, data: normalizeDataStructure(r.data) }));
+        records = data || [];
       } else {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key.startsWith('organizer_day_')) {
             const dateStr = key.replace('organizer_day_', '');
             if (scope === 'all' || (dateStr >= startDate && dateStr <= endDate)) {
-              records.push({ date_key: dateStr, data: normalizeDataStructure(JSON.parse(localStorage.getItem(key))) });
+              records.push({ date_key: dateStr, data: JSON.parse(localStorage.getItem(key)) });
             }
           }
         }
@@ -415,32 +405,6 @@
       }
     }
 
-    async function getOrCreateBackupFolder(accessToken, folderName = "JL's Organizer Backups") {
-      const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`)}`;
-      const searchRes = await fetch(searchUrl, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      });
-      const searchData = await searchRes.json();
-
-      if (searchData.files && searchData.files.length > 0) {
-        return searchData.files[0].id;
-      }
-
-      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: folderName,
-          mimeType: 'application/vnd.google-apps.folder'
-        })
-      });
-      const createData = await createRes.json();
-      return createData.id;
-    }
-
     async function saveArchivesToGoogleDrive(records) {
       const activeToken = googleAccessTokens[activeHubTab] || Object.values(googleAccessTokens)[0];
 
@@ -452,14 +416,13 @@
 
       const fileName = `Organizer_Backup_${records[0].date_key}_to_${records[records.length - 1].date_key}.json`;
       const fileContent = JSON.stringify(records, null, 2);
+      const targetFolderId = "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB";
 
       try {
-        const folderId = await getOrCreateBackupFolder(activeToken, "JL's Organizer Backups");
-
         const metadata = { 
           name: fileName, 
           mimeType: 'application/json',
-          parents: [folderId]
+          parents: [targetFolderId]
         };
 
         const form = new FormData();
@@ -473,7 +436,7 @@
         });
 
         if (res.ok) {
-          alert(`Successfully saved backup directly to "JL's Organizer Backups" folder in Google Drive!`);
+          alert(`Successfully saved backup directly to your specified Google Drive folder!`);
         } else {
           const errText = await res.text();
           alert(`Google Drive API error (${res.status}): ${errText}`);
@@ -706,9 +669,15 @@
           }
         }
       } else if (source === 'apple') {
-        let list = currentData.appleReminders || [];
-        list = list.map(t => (t.id === id || t.title === id) ? { ...t, completed: isChecked } : t);
-        currentData.appleReminders = list;
+        let appleData = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+        appleData = appleData.map(t => (t.id === id || t.title === id) ? { ...t, completed: isChecked } : t);
+        
+        if (currentData.data && currentData.data.appleReminders) {
+          currentData.data.appleReminders = appleData;
+        } else {
+          currentData.appleReminders = appleData;
+        }
+        
         saveActiveData();
         renderSyncedTasks();
       }
@@ -722,8 +691,8 @@
       let itemsToDisplay = [];
 
       if (activeHubTab === 'apple') {
-        const rawList = currentData.appleReminders || [];
-        itemsToDisplay = rawList.map(i => ({
+        const appleData = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+        itemsToDisplay = appleData.map(i => ({
           id: i.id || i.title,
           title: i.title || i.text || 'Untitled Task',
           completed: !!i.completed,
@@ -759,7 +728,7 @@
     function loadLocalFallback() {
       const local = localStorage.getItem(`organizer_day_${activeDate}`);
       if (local) {
-        try { currentData = normalizeDataStructure(JSON.parse(local)); } catch(e){}
+        try { currentData = JSON.parse(local); } catch(e){}
       }
       renderAllUI();
     }
@@ -771,7 +740,7 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'organizer_data' }, payload => {
           if (payload.new && payload.new.date_key === activeDate) {
             if (!isUserTyping) {
-              currentData = normalizeDataStructure(payload.new.data);
+              currentData = payload.new.data;
               renderAllUI();
             }
           }
@@ -800,10 +769,10 @@
         .eq('date_key', previousDay)
         .maybeSingle();
         
-      let prevData = prevDataRow ? normalizeDataStructure(prevDataRow.data) : null;
+      let prevData = prevDataRow ? prevDataRow.data : null;
 
       let rolledOverTasks = [];
-      if (prevData && prevData.tasks && Array.isArray(prevData.tasks)) {
+      if (prevData && prevData.tasks) {
         const uncompleted = prevData.tasks.filter(t => !t.completed);
         rolledOverTasks = uncompleted.map(t => ({ ...t, id: Date.now() + Math.random() }));
       }
@@ -841,7 +810,7 @@
           .maybeSingle();
 
         if (row && row.data) {
-          currentData = normalizeDataStructure(row.data);
+          currentData = row.data;
         } else {
           currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" } };
         }
