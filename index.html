@@ -312,6 +312,16 @@
       return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     }
 
+    // Normalizer to flatten data regardless of REST payload nesting
+    function normalizeDataStructure(raw) {
+      if (!raw) return {};
+      let obj = { ...raw };
+      if (obj.data && typeof obj.data === 'object' && !Array.isArray(obj.data)) {
+        obj = { ...obj, ...obj.data };
+      }
+      return obj;
+    }
+
     let activeDate = getTodayString();
     let currentData = { 
       schedule: {}, 
@@ -370,14 +380,14 @@
           query = query.gte('date_key', startDate).lte('date_key', endDate);
         }
         const { data } = await query.order('date_key', { ascending: true });
-        records = data || [];
+        records = (data || []).map(r => ({ date_key: r.date_key, data: normalizeDataStructure(r.data) }));
       } else {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key.startsWith('organizer_day_')) {
             const dateStr = key.replace('organizer_day_', '');
             if (scope === 'all' || (dateStr >= startDate && dateStr <= endDate)) {
-              records.push({ date_key: dateStr, data: JSON.parse(localStorage.getItem(key)) });
+              records.push({ date_key: dateStr, data: normalizeDataStructure(JSON.parse(localStorage.getItem(key))) });
             }
           }
         }
@@ -691,10 +701,9 @@
           }
         }
       } else if (source === 'apple') {
-        let list = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+        let list = currentData.appleReminders || [];
         list = list.map(t => (t.id === id || t.title === id) ? { ...t, completed: isChecked } : t);
         currentData.appleReminders = list;
-        if (currentData.data) currentData.data.appleReminders = list;
         saveActiveData();
         renderSyncedTasks();
       }
@@ -708,7 +717,7 @@
       let itemsToDisplay = [];
 
       if (activeHubTab === 'apple') {
-        const rawList = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+        const rawList = currentData.appleReminders || [];
         itemsToDisplay = rawList.map(i => ({
           id: i.id || i.title,
           title: i.title || i.text || 'Untitled Task',
@@ -745,7 +754,7 @@
     function loadLocalFallback() {
       const local = localStorage.getItem(`organizer_day_${activeDate}`);
       if (local) {
-        try { currentData = JSON.parse(local); } catch(e){}
+        try { currentData = normalizeDataStructure(JSON.parse(local)); } catch(e){}
       }
       renderAllUI();
     }
@@ -757,10 +766,7 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'organizer_data' }, payload => {
           if (payload.new && payload.new.date_key === activeDate) {
             if (!isUserTyping) {
-              currentData = payload.new.data;
-              if (currentData.data) {
-                currentData = { ...currentData, ...currentData.data };
-              }
+              currentData = normalizeDataStructure(payload.new.data);
               renderAllUI();
             }
           }
@@ -789,10 +795,10 @@
         .eq('date_key', previousDay)
         .maybeSingle();
         
-      let prevData = prevDataRow ? prevDataRow.data : null;
+      let prevData = prevDataRow ? normalizeDataStructure(prevDataRow.data) : null;
 
       let rolledOverTasks = [];
-      if (prevData && prevData.tasks) {
+      if (prevData && prevData.tasks && Array.isArray(prevData.tasks)) {
         const uncompleted = prevData.tasks.filter(t => !t.completed);
         rolledOverTasks = uncompleted.map(t => ({ ...t, id: Date.now() + Math.random() }));
       }
@@ -830,10 +836,7 @@
           .maybeSingle();
 
         if (row && row.data) {
-          currentData = row.data;
-          if (currentData.data) {
-            currentData = { ...currentData, ...currentData.data };
-          }
+          currentData = normalizeDataStructure(row.data);
         } else {
           currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" } };
         }
@@ -845,7 +848,7 @@
       currentData.waterCheckmarks = currentData.waterCheckmarks || {};
       currentData.tasks = currentData.tasks || [];
       currentData.habits = currentData.habits || { water: false, drugs: false, exercise: false, read: false };
-      currentData.appleReminders = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
+      currentData.appleReminders = currentData.appleReminders || [];
       currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
       currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
       currentData.tabNames = currentData.tabNames || { 'apple': "🍎", 'google_1': "Account 1", 'google_2': "Account 2" };
