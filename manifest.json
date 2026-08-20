@@ -1,0 +1,15 @@
+{
+  "name": "JL's Daily Organizer",
+  "short_name": "Organizer",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f2eb",
+  "theme_color": "#84a98c",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
