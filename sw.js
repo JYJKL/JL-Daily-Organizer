@@ -1,6 +1,23 @@
+const CACHE_NAME = 'organizer-store-v2';
+
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
-    caches.open('organizer-store').then((cache) => cache.addAll(['./', './index.html']))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
+  );
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
