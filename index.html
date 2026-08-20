@@ -265,7 +265,7 @@
         <div>
           <label class="block font-medium mb-1 text-[#4a4e51] dark:text-[#d1d5db]">Output Format:</label>
           <select id="export-format" class="w-full bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg p-2 text-xs text-[#4a4e51] dark:text-[#e5e7eb]">
-            <option value="drive">📁 Save directly to Google Drive (.json)</option>
+            <option value="drive">📁 Save to "JL's Organizer Backups" folder in Drive (.json)</option>
             <option value="html">Merged HTML File (.html)</option>
             <option value="pdf">PDF Print View (Browser Print / Save PDF)</option>
           </select>
@@ -390,6 +390,32 @@
       }
     }
 
+    async function getOrCreateBackupFolder(accessToken, folderName = "JL's Organizer Backups") {
+      const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`)}`;
+      const searchRes = await fetch(searchUrl, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      const searchData = await searchRes.json();
+
+      if (searchData.files && searchData.files.length > 0) {
+        return searchData.files[0].id;
+      }
+
+      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: folderName,
+          mimeType: 'application/vnd.google-apps.folder'
+        })
+      });
+      const createData = await createRes.json();
+      return createData.id;
+    }
+
     async function saveArchivesToGoogleDrive(records) {
       const activeToken = googleAccessTokens[activeHubTab] || Object.values(googleAccessTokens)[0];
 
@@ -403,7 +429,14 @@
       const fileContent = JSON.stringify(records, null, 2);
 
       try {
-        const metadata = { name: fileName, mimeType: 'application/json' };
+        const folderId = await getOrCreateBackupFolder(activeToken, "JL's Organizer Backups");
+
+        const metadata = { 
+          name: fileName, 
+          mimeType: 'application/json',
+          parents: [folderId]
+        };
+
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
         form.append('file', new Blob([fileContent], { type: 'application/json' }));
@@ -415,8 +448,7 @@
         });
 
         if (res.ok) {
-          const result = await res.json();
-          alert(`Successfully saved backup directly to your Google Drive! File ID: ${result.id}`);
+          alert(`Successfully saved backup directly to "JL's Organizer Backups" folder in Google Drive!`);
         } else {
           const errText = await res.text();
           alert(`Google Drive API error (${res.status}): ${errText}`);
