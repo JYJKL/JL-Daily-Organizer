@@ -13,7 +13,7 @@ jobs:
       - name: Fetch Today's Data from Supabase
         id: fetch_data
         run: |
-          TODAY=$(date +'%Y-%m-%d')
+          TODAY=$(TZ='America/New_York' date +'%Y-%m-%d')
           echo "TODAY=$TODAY" >> $GITHUB_ENV
           
           RESPONSE=$(curl -s "https://zeplhjklsuxwndpwfnyl.supabase.co/rest/v1/organizer_data?date_key=eq.${TODAY}&select=*" \
@@ -27,6 +27,7 @@ jobs:
         run: |
           TOKEN_RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
             -d client_id="${{ secrets.GDRIVE_CLIENT_ID }}" \
+            -d client_secret="${{ secrets.GDRIVE_CLIENT_SECRET }}" \
             -d refresh_token="${{ secrets.GDRIVE_REFRESH_TOKEN }}" \
             -d grant_type="refresh_token")
           
