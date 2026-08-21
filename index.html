@@ -527,9 +527,52 @@
         editBtn.style.display = (activeHubTab === 'apple') ? 'none' : 'inline-block';
       }
 
+      // SHOW DELETE BUTTON FOR CUSTOM TABS (Keep Apple, JYJL/google_1, MYRA/google_2 protected)
+      let deleteBtn = document.getElementById('delete-tab-btn');
+      if (!deleteBtn) {
+        const actionsContainer = editBtn ? editBtn.parentElement : null;
+        if (actionsContainer) {
+          deleteBtn = document.createElement('button');
+          deleteBtn.id = 'delete-tab-btn';
+          deleteBtn.className = 'text-xs text-[#e07a5f] hover:underline px-1 font-sans';
+          deleteBtn.onclick = deleteCurrentTab;
+          actionsContainer.appendChild(deleteBtn);
+        }
+      }
+      if (deleteBtn) {
+        deleteBtn.style.display = (activeHubTab !== 'apple' && activeHubTab !== 'google_1' && activeHubTab !== 'google_2') ? 'inline-block' : 'none';
+        deleteBtn.textContent = 'Delete Tab';
+      }
+
       const authBtn = document.getElementById('google-auth-btn');
       if (authBtn) {
         authBtn.style.display = (activeHubTab === 'apple') ? 'none' : 'flex';
+      }
+    }
+
+    function deleteCurrentTab() {
+      if (activeHubTab === 'apple' || activeHubTab === 'google_1' || activeHubTab === 'google_2') {
+        alert("Primary tabs cannot be deleted.");
+        return;
+      }
+
+      if (confirm(`Are you sure you want to delete this tab?`)) {
+        // 1. Remove from tab list array
+        currentData.tabList = (currentData.tabList || []).filter(t => t !== activeHubTab);
+        
+        // 2. Remove token and stored tasks if any
+        const accNum = activeHubTab.replace('google_', '');
+        if (currentData.googleAccountTasks) {
+          delete currentData.googleAccountTasks[accNum];
+        }
+        if (currentData.tabNames) {
+          delete currentData.tabNames[activeHubTab];
+        }
+        localStorage.removeItem(`gtoken_${activeHubTab}`);
+
+        // 3. Switch back to Account 1 (JYJL) and save
+        switchHubTab('google_1');
+        saveActiveData();
       }
     }
 
