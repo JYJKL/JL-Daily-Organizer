@@ -37,26 +37,23 @@
   </style>
 
   <!-- PWA Service Worker Registration with Auto-Reload -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').then(reg => {
-        // Check for sw.js updates every time the app loads or gets focused
-        reg.update();
-
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // Automatically reload the page once the new cache is ready
-              window.location.reload();
-            }
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          reg.update();
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            });
           });
-        });
+        }).catch(err => console.log('Service Worker failed:', err));
       });
-    });
-  }
-</script>
+    }
+  </script>
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   <div class="max-w-6xl mx-auto space-y-6">
@@ -117,7 +114,7 @@
           <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks</h2>
           <span class="text-xs text-[#84a98c] dark:text-[#a3b18a] no-print">Auto-saves as you type</span>
         </div>
-        <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-7 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
+        <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-8 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
       </section>
 
       <!-- Right Column -->
@@ -152,10 +149,10 @@
             </label>
 
             <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
-              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🪥 Brush Teeth </span>
-              <input type="checkbox" id="habit-brush" onchange="toggleHabit('brush')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
+              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🪥 Brush Teeth</span>
+              <input type="checkbox" id="habit-teeth" onchange="toggleHabit('teeth')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
             </label>
-            
+
             <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
               <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💊 Take Drugs / Meds</span>
               <input type="checkbox" id="habit-drugs" onchange="toggleHabit('drugs')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
@@ -318,8 +315,8 @@
     let googleAccessTokens = {};
 
     const HOURS = [
-      "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
-      "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM", "9:00 PM"
+      "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
+      "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM"
     ];
 
     const CHRONOLOGICAL_HOURS = HOURS;
@@ -335,7 +332,7 @@
       schedule: {}, 
       waterCheckmarks: {}, 
       tasks: [], 
-      habits: { water: false, brush: false, drugs: false, exercise: false, read: false }, 
+      habits: { water: false, teeth: false, drugs: false, exercise: false, read: false }, 
       appleReminders: [], 
       googleAccountTasks: { 1: [], 2: [] },
       tabList: ['apple', 'google_1', 'google_2'],
@@ -351,7 +348,7 @@
       document.getElementById('export-end-date').value = activeDate;
       renderAllUI();
 
-      checkGoogleOAuthReturn();
+      await checkGoogleOAuthReturn();
 
       if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
@@ -506,14 +503,21 @@
       const tabNames = currentData.tabNames || {};
 
       tabList.forEach(tabKey => {
-        const name = tabNames[tabKey] || (tabKey === 'apple' ? "🍎" : tabKey.replace('google_', 'Account '));
+        let defaultLabel = tabKey === 'apple' ? "🍎" : (tabKey === 'google_1' ? "JYJL" : "MYRA");
+        const name = tabNames[tabKey] || defaultLabel;
         const isActive = activeHubTab === tabKey;
 
         const btn = document.createElement('button');
         btn.textContent = name;
         btn.onclick = () => switchHubTab(tabKey);
+        
+        let activeClass = "bg-[#84a98c] text-white";
+        if (isActive && (name.toUpperCase() === "MYRA" || tabKey === "google_2")) {
+          activeClass = "bg-[#e07a5f] text-white";
+        }
+
         btn.className = isActive 
-          ? "text-xs font-semibold px-2.5 py-1 rounded-md bg-[#84a98c] text-white transition flex-shrink-0"
+          ? `text-xs font-semibold px-2.5 py-1 rounded-md ${activeClass} transition flex-shrink-0`
           : "text-xs font-semibold px-2.5 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition flex-shrink-0";
         container.appendChild(btn);
       });
@@ -583,32 +587,33 @@
     }
 
     async function checkGoogleOAuthReturn() {
-  const hash = window.location.hash;
-  if (hash && hash.includes("access_token")) {
-    const params = new URLSearchParams(hash.substring(1));
-    const accessToken = params.get("access_token");
-    const state = params.get("state");
-    const targetTab = state && state.startsWith('google_') ? state : 'google_1';
+      const hash = window.location.hash;
+      if (hash && hash.includes("access_token")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+        const state = params.get("state");
+        const targetTab = state && state.startsWith('google_') ? state : 'google_1';
 
-    if (accessToken) {
-      // Save token locally so page refreshes don't drop the login
-      localStorage.setItem(`gtoken_${targetTab}`, accessToken);
-      googleAccessTokens[targetTab] = accessToken;
-      
-      window.history.replaceState(null, null, window.location.pathname);
-      switchHubTab(targetTab);
-      await fetchGoogleTasks(accessToken, targetTab);
-    }
-  } else {
-    // Restore saved tokens on page load
-    (currentData.tabList || []).forEach(tabKey => {
-      const savedToken = localStorage.getItem(`gtoken_${tabKey}`);
-      if (savedToken) {
-        googleAccessTokens[tabKey] = savedToken;
+        if (accessToken) {
+          localStorage.setItem(`gtoken_${targetTab}`, accessToken);
+          googleAccessTokens[targetTab] = accessToken;
+          
+          window.history.replaceState(null, null, window.location.pathname);
+          switchHubTab(targetTab);
+          await fetchGoogleTasks(accessToken, targetTab);
+        }
+      } else {
+        (currentData.tabList || ['apple', 'google_1', 'google_2']).forEach(tabKey => {
+          if (tabKey.startsWith('google_')) {
+            const savedToken = localStorage.getItem(`gtoken_${tabKey}`);
+            if (savedToken) {
+              googleAccessTokens[tabKey] = savedToken;
+              fetchGoogleTasks(savedToken, tabKey);
+            }
+          }
+        });
       }
-    });
-  }
-}
+    }
 
     async function fetchGoogleTasks(accessToken, tabKey) {
       const container = document.getElementById('synced-tasks-list');
@@ -619,14 +624,18 @@
         
         if (!res.ok) {
           const errorText = await res.text();
-          container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
+          if (container && activeHubTab === tabKey) {
+            container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
+          }
           return;
         }
 
         const listsData = await res.json();
         if (!listsData.items || listsData.items.length === 0) {
-          const tabLabel = currentData.tabNames[tabKey] || tabKey;
-          container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2 font-sans">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
+          if (container && activeHubTab === tabKey) {
+            const tabLabel = currentData.tabNames[tabKey] || tabKey;
+            container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2 font-sans">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
+          }
           return;
         }
 
@@ -657,10 +666,14 @@
         currentData.googleAccountTasks[accNum] = allTasks;
 
         saveActiveData();
-        renderSyncedTasks();
+        if (activeHubTab === tabKey) {
+          renderSyncedTasks();
+        }
 
       } catch (err) {
-        container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">JS Error: ${escapeHtml(err.message)}</li>`;
+        if (container && activeHubTab === tabKey) {
+          container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">JS Error: ${escapeHtml(err.message)}</li>`;
+        }
       }
     }
 
@@ -812,7 +825,7 @@
           schedule: {},
           waterCheckmarks: {},
           tasks: rolledOverTasks,
-          habits: { water: false, brush: false, drugs: false, exercise: false, read: false },
+          habits: { water: false, teeth: false, drugs: false, exercise: false, read: false },
           appleReminders: [],
           googleAccountTasks: { 1: [], 2: [] },
           tabList: (prevData && prevData.tabList) ? prevData.tabList : ['apple', 'google_1', 'google_2'],
@@ -823,66 +836,37 @@
     }
 
     async function loadDateData(dateStr) {
-  activeDate = dateStr;
-  const today = getTodayString();
+      activeDate = dateStr;
+      const today = getTodayString();
 
-  if (supabaseClient) {
-    const { data: row } = await supabaseClient
-      .from('organizer_data')
-      .select('data')
-      .eq('date_key', dateStr)
-      .maybeSingle();
+      if (supabaseClient) {
+        const { data: row } = await supabaseClient
+          .from('organizer_data')
+          .select('data')
+          .eq('date_key', dateStr)
+          .maybeSingle();
 
-    if (row && row.data) {
-      currentData = row.data;
-    } else {
-      currentData = { 
-        schedule: {}, 
-        waterCheckmarks: {}, 
-        tasks: [], 
-        // 1. ADD YOUR NEW HABIT TO FRESH DAYS HERE:
-        habits: { water: false, brush: false, drugs: false, exercise: false, read: false, myNewHabit: false }, 
-        appleReminders: [], 
-        googleAccountTasks: { 1: [], 2: [] }, 
-        tabList: ['apple', 'google_1', 'google_2'], 
-        // 2. UPDATE DEFAULT TAB NAMES HERE:
-        tabNames: { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" } 
-      };
+        if (row && row.data) {
+          currentData = row.data;
+        } else {
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, teeth: false, drugs: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" } };
+        }
+      } else {
+        loadLocalFallback();
+      }
+
+      currentData.schedule = currentData.schedule || {};
+      currentData.waterCheckmarks = currentData.waterCheckmarks || {};
+      currentData.tasks = currentData.tasks || [];
+      currentData.habits = Object.assign({ water: false, teeth: false, drugs: false, exercise: false, read: false }, currentData.habits || {});
+      currentData.appleReminders = currentData.appleReminders || [];
+      currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
+      currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+      currentData.tabNames = Object.assign({ 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" }, currentData.tabNames || {});
+
+      updateHeaderUI(dateStr, today);
+      renderAllUI();
     }
-  } else {
-    loadLocalFallback();
-  }
-
-  // ENSURE EXISTING DATABASE ROWS GET THE NEW HABIT KEY
-  currentData.schedule = currentData.schedule || {};
-  currentData.waterCheckmarks = currentData.waterCheckmarks || {};
-  currentData.tasks = currentData.tasks || [];
-  
-  // MERGE HABITS: Preserves existing checked statuses while adding missing new habits
-  currentData.habits = Object.assign({ 
-    water: false,
-    brush: false,
-    drugs: false, 
-    exercise: false, 
-    read: false, 
-    myNewHabit: false // <-- Add your new habit key here too
-  }, currentData.habits || {});
-
-  currentData.appleReminders = currentData.appleReminders || [];
-  currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
-// Merge tab metadata so dynamic tabs and names persist permanently across reloads
-currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
-currentData.tabNames = Object.assign({ 
-  'apple': "🍎", 
-  'google_1': "JYJL", 
-  'google_2': "MYRA" 
-}, currentData.tabNames || {});
-
-currentData.googleAccountTasks = currentData.googleAccountTasks || {};
-
-  updateHeaderUI(dateStr, today);
-  renderAllUI();
-}
 
     function renderAllUI() {
       renderSchedule();
@@ -1011,12 +995,16 @@ currentData.googleAccountTasks = currentData.googleAccountTasks || {};
     });
 
     function toggleTask(id) { 
-  currentData.tasks = currentData.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t); 
-  saveActiveData(); 
-  renderTasks(); 
-  updateProgress(); // Re-calculates percentage immediately
-}
-    function deleteTask(id) { currentData.tasks = currentData.tasks.filter(t => t.id !== id); saveActiveData(); renderTasks(); }
+      currentData.tasks = currentData.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t); 
+      saveActiveData(); 
+      renderTasks(); 
+    }
+
+    function deleteTask(id) { 
+      currentData.tasks = currentData.tasks.filter(t => t.id !== id); 
+      saveActiveData(); 
+      renderTasks(); 
+    }
 
     function renderTasks() {
       const list = document.getElementById('task-list');
@@ -1045,39 +1033,35 @@ currentData.googleAccountTasks = currentData.googleAccountTasks || {};
     }
 
     function updateProgress() {
-  let totalItems = 0;
-  let completedItems = 0;
+      let totalItems = 0;
+      let completedItems = 0;
 
-  // 1. Count Tasks
-  if (currentData.tasks && currentData.tasks.length > 0) {
-    totalItems += currentData.tasks.length;
-    completedItems += currentData.tasks.filter(t => t.completed).length;
-  }
-
-  // 2. Count Water Slots (1 full item total, split into 4 quarters)
-  totalItems += 1;
-  const waterCheckedCount = WATER_SLOTS.filter(slot => currentData.waterCheckmarks && currentData.waterCheckmarks[slot]).length;
-  completedItems += (waterCheckedCount * 0.25);
-
-  // 3. Count All Non-Water Habits Dynamically
-  if (currentData.habits) {
-    const habitKeys = Object.keys(currentData.habits).filter(k => k !== 'water');
-    totalItems += habitKeys.length;
-
-    habitKeys.forEach(key => {
-      if (currentData.habits[key]) {
-        completedItems += 1;
+      if (currentData.tasks && currentData.tasks.length > 0) {
+        totalItems += currentData.tasks.length;
+        completedItems += currentData.tasks.filter(t => t.completed).length;
       }
-    });
-  }
 
-  // Calculate & Display Percentage
-  const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-  const progressEl = document.getElementById('progress-text');
-  if (progressEl) {
-    progressEl.textContent = `${percentage}%`;
-  }
-}
+      totalItems += 1;
+      const waterCheckedCount = WATER_SLOTS.filter(slot => currentData.waterCheckmarks && currentData.waterCheckmarks[slot]).length;
+      completedItems += (waterCheckedCount * 0.25);
+
+      if (currentData.habits) {
+        const habitKeys = Object.keys(currentData.habits).filter(k => k !== 'water');
+        totalItems += habitKeys.length;
+
+        habitKeys.forEach(key => {
+          if (currentData.habits[key]) {
+            completedItems += 1;
+          }
+        });
+      }
+
+      const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+      const progressEl = document.getElementById('progress-text');
+      if (progressEl) {
+        progressEl.textContent = `${percentage}%`;
+      }
+    }
 
     function toggleHabit(key) { 
       currentData.habits[key] = document.getElementById(`habit-${key}`).checked; 
@@ -1090,10 +1074,14 @@ currentData.googleAccountTasks = currentData.googleAccountTasks || {};
       document.getElementById('water-count').textContent = `(${completedCount}/${WATER_SLOTS.length})`;
       document.getElementById('habit-water').checked = (completedCount === WATER_SLOTS.length);
       
-      ['brush', 'drugs', 'exercise', 'read'].forEach(key => {
-        const el = document.getElementById(`habit-${key}`);
-        if (el) el.checked = !!(currentData.habits && currentData.habits[key]);
-      });
+      if (currentData.habits) {
+        Object.keys(currentData.habits).forEach(key => {
+          if (key !== 'water') {
+            const el = document.getElementById(`habit-${key}`);
+            if (el) el.checked = !!currentData.habits[key];
+          }
+        });
+      }
 
       updateProgress();
     }
