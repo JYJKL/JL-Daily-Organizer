@@ -583,21 +583,32 @@
     }
 
     async function checkGoogleOAuthReturn() {
-      const hash = window.location.hash;
-      if (hash && hash.includes("access_token")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-        const state = params.get("state");
-        const targetTab = state && state.startsWith('google_') ? state : 'google_1';
+  const hash = window.location.hash;
+  if (hash && hash.includes("access_token")) {
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get("access_token");
+    const state = params.get("state");
+    const targetTab = state && state.startsWith('google_') ? state : 'google_1';
 
-        if (accessToken) {
-          googleAccessTokens[targetTab] = accessToken;
-          window.history.replaceState(null, null, window.location.pathname);
-          switchHubTab(targetTab);
-          await fetchGoogleTasks(accessToken, targetTab);
-        }
-      }
+    if (accessToken) {
+      // Save token locally so page refreshes don't drop the login
+      localStorage.setItem(`gtoken_${targetTab}`, accessToken);
+      googleAccessTokens[targetTab] = accessToken;
+      
+      window.history.replaceState(null, null, window.location.pathname);
+      switchHubTab(targetTab);
+      await fetchGoogleTasks(accessToken, targetTab);
     }
+  } else {
+    // Restore saved tokens on page load
+    (currentData.tabList || []).forEach(tabKey => {
+      const savedToken = localStorage.getItem(`gtoken_${tabKey}`);
+      if (savedToken) {
+        googleAccessTokens[tabKey] = savedToken;
+      }
+    });
+  }
+}
 
     async function fetchGoogleTasks(accessToken, tabKey) {
       const container = document.getElementById('synced-tasks-list');
@@ -859,14 +870,15 @@
 
   currentData.appleReminders = currentData.appleReminders || [];
   currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
-  currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
-  
-  // MERGE TAB NAMES: Preserves existing custom tab names while updating missing defaults
-  currentData.tabNames = Object.assign({ 
-    'apple': "🍎", 
-    'google_1': "JYJL", 
-    'google_2': "MYRA" 
-  }, currentData.tabNames || {});
+// Merge tab metadata so dynamic tabs and names persist permanently across reloads
+currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
+currentData.tabNames = Object.assign({ 
+  'apple': "🍎", 
+  'google_1': "JYJL", 
+  'google_2': "MYRA" 
+}, currentData.tabNames || {});
+
+currentData.googleAccountTasks = currentData.googleAccountTasks || {};
 
   updateHeaderUI(dateStr, today);
   renderAllUI();
