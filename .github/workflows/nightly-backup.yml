@@ -2,8 +2,8 @@ name: Nightly Google Drive Backup
 
 on:
   schedule:
-    # Runs at 03:00 UTC every night (11:00 PM EDT)
-    - cron: '0 3 * * *'
+    # Runs at 11:17 PM EDT (03:17 UTC) to avoid runner queue delays
+    - cron: '17 3 * * *'
   workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
 
 jobs:
@@ -13,37 +13,23 @@ jobs:
       - name: Fetch Today's Data from Supabase
         id: fetch_data
         run: |
+          # Step 1: Force Eastern Timezone
           TODAY=$(TZ='America/New_York' date +'%Y-%m-%d')
           echo "TODAY=$TODAY" >> $GITHUB_ENV
-          
-          RESPONSE=$(curl -s "https://zeplhjklsuxwndpwfnyl.supabase.co/rest/v1/organizer_data?date_key=eq.${TODAY}&select=*" \
-            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g")
-          
-          echo "$RESPONSE" > backup.json
 
-      - name: Get Google Drive Access Token
-        id: get_token
-        run: |
-          TOKEN_RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
-            -d client_id="${{ secrets.GDRIVE_CLIENT_ID }}" \
-            -d client_secret="${{ secrets.GDRIVE_CLIENT_SECRET }}" \
-            -d refresh_token="${{ secrets.GDRIVE_REFRESH_TOKEN }}" \
-            -d grant_type="refresh_token")
-          
-          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
-          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+          RESPONSE=$(curl -s -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/organizer_data?date_key=eq.${TODAY}&select=data" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
 
-      - name: Upload Backup to Google Drive Folder
-        run: |
-          FILENAME="Organizer_Backup_${{ env.TODAY }}.json"
-          
-          METADATA=$(jq -n \
-            --arg name "$FILENAME" \
-            --arg folder "${{ secrets.GDRIVE_FOLDER_ID }}" \
-            '{name: $name, mimeType: "application/json", parents: [$folder]}')
+          # Step 2: Cleanly extract JSON object using jq
+          DATA_CONTENT=$(echo "$RESPONSE" | jq -r '.[0].data // {}')
 
-          curl -X POST "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart" \
-            -H "Authorization: Bearer ${{ env.ACCESS_TOKEN }}" \
-            -F "metadata=$METADATA;type=application/json;charset=UTF-8" \
-            -F "file=@backup.json;type=application/json"
+          echo "$DATA_CONTENT" > "Organizer_Backup_${TODAY}.json"
+
+      - name: Upload Backup to Google Drive
+        uses: adityak25/google-drive-upload-action@v1
+        with:
+          credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}
+          filename: "Organizer_Backup_${{ env.TODAY }}.json"
+          folderId: "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"
+          overwrite: true
