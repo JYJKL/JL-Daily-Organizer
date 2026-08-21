@@ -100,7 +100,7 @@
     </header>
 
     <!-- Banner for Historical View Mode -->
-    <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#dfbaaf]/40 dark:border-[#dfbaaf]/40 p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center no-print">
+    <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#dfbaaf]/60 dark:border-[#dfbaaf]/60 p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center no-print">
       <span>📜 Viewing archived entry for <strong id="archive-date-label" class="text-[#383d40] dark:text-[#f3f4f6]"></strong>. Edits auto-save to cloud.</span>
       <button onclick="goToToday()" class="text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline">Return to Today</button>
     </div>
@@ -513,11 +513,11 @@
         
         let activeClass = "bg-[#84a98c] text-white";
         if (isActive && (name.toUpperCase() === "MYRA" || tabKey === "google_2")) {
-          activeClass = "bg-[#dfbaaf] text-white";
+          activeClass = "bg-[#dfbaaf] text-[#383d40]";
         }
 
         btn.className = isActive 
-          ? `text-xs font-semibold px-2.5 py-1 rounded-md ${activeClass} transition flex-shrink-0`
+          ? `text-xs font-semibold px-2.5 py-1 rounded-md ${activeClass} transition flex-shrink-0 shadow-sm`
           : "text-xs font-semibold px-2.5 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition flex-shrink-0";
         container.appendChild(btn);
       });
@@ -744,8 +744,16 @@
       const sortedItems = itemsToDisplay.sort((a, b) => Number(a.completed) - Number(b.completed));
 
       if (sortedItems.length === 0) {
-        const tabLabel = (currentData.tabNames && currentData.tabNames[activeHubTab]) ? currentData.tabNames[activeHubTab] : activeHubTab;
-        container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-sans">No synced items for ${escapeHtml(tabLabel)}</li>`;
+        if (activeHubTab === 'apple') {
+          container.innerHTML = `
+            <li class="p-3 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-lg border border-[#e2dedc] dark:border-[#404347]">
+              <p class="text-xs font-semibold text-[#84a98c] dark:text-[#a3b18a] mb-1">🍎 Apple Reminders Empty</p>
+              <p class="text-[11px] text-[#8c9296] dark:text-[#9ca3af] leading-tight">Run your <strong class="text-[#4a4e51] dark:text-[#d1d5db]">Sync Reminders to Organizer</strong>Shortcut from Mac or iOS to pull in today's tasks.</p>
+            </li>`;
+        } else {
+          const tabLabel = (currentData.tabNames && currentData.tabNames[activeHubTab]) ? currentData.tabNames[activeHubTab] : activeHubTab;
+          container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-sans">No synced items for ${escapeHtml(tabLabel)}</li>`;
+        }
         return;
       }
 
@@ -907,7 +915,7 @@
         banner.classList.add('hidden');
       } else {
         badge.textContent = "Archived";
-        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#dfbaaf] text-white";
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#dfbaaf] text-[#383d40]";
         banner.classList.remove('hidden');
         document.getElementById('archive-date-label').textContent = selectedDate;
       }
@@ -1024,7 +1032,7 @@
               <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
               <span class="text-sm font-sans break-words ${task.completed ? 'line-through text-[#8c9296] dark:text-[#6b7280]' : 'text-[#4a4e51] dark:text-[#e5e7eb]'}">${escapeHtml(task.text)}</span>
             </div>
-            <button onclick="deleteTask(${task.id})" class="text-[#8c9296] hover:text-[#dfbaaf] text-xs px-1 flex-shrink-0 no-print">✕</button>
+            <button onclick="deleteTask(${task.id})" class="text-[#8c9296] hover:text-[#e07a5f] text-xs px-1 flex-shrink-0 no-print">✕</button>
           `;
           list.appendChild(li);
         });
