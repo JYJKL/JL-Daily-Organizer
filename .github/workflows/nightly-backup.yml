@@ -33,9 +33,7 @@ jobs:
 
           async function run() {
             const supabaseUrl = process.env.SUPABASE_URL;
-            if (!supabaseUrl) {
-              throw new Error("SUPABASE_URL secret is missing!");
-            }
+            if (!supabaseUrl) throw new Error("SUPABASE_URL secret is missing!");
 
             // 1. Calculate EDT Date (YYYY-MM-DD)
             const parts = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
@@ -68,11 +66,15 @@ jobs:
             });
             const drive = google.drive({ version: "v3", auth });
 
-            // 4. Search if file already exists in target folder
             const folderId = "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB";
+
+            // 4. Search existing files using formatted query
+            const query = `"${folderId}" in parents and name = "${fileName}" and trashed = false`;
             const searchRes = await drive.files.list({
-              q: `'${folderId}' in parents and name = '${fileName}' and trashed = false`,
-              fields: "files(id, name)"
+              q: query,
+              fields: "files(id, name)",
+              supportsAllDrives: true,
+              includeItemsFromAllDrives: true
             });
 
             const media = {
@@ -80,14 +82,15 @@ jobs:
               body: fs.createReadStream(fileName)
             };
 
-            if (searchRes.data.files.length > 0) {
+            if (searchRes.data.files && searchRes.data.files.length > 0) {
               const existingFileId = searchRes.data.files[0].id;
               console.log(`Overwriting existing file ${existingFileId}...`);
               await drive.files.update({
                 fileId: existingFileId,
-                media: media
+                media: media,
+                supportsAllDrives: true
               });
-              console.log(`Successfully updated existing backup!`);
+              console.log("Successfully updated existing backup!");
             } else {
               const uploadRes = await drive.files.create({
                 requestBody: {
@@ -95,6 +98,7 @@ jobs:
                   parents: [folderId]
                 },
                 media: media,
+                supportsAllDrives: true,
                 fields: "id"
               });
               console.log(`Successfully created new backup! File ID: ${uploadRes.data.id}`);
@@ -102,7 +106,7 @@ jobs:
           }
 
           run().catch(err => {
-            console.error("Backup failed:", err.message);
+            console.error("Backup failed:", err.message || err);
             process.exit(1);
           });
           '
