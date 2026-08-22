@@ -2,9 +2,9 @@ name: Nightly Google Drive Backup
 
 on:
   schedule:
-    # Runs at 11:17 PM EDT (03:17 UTC) to avoid runner queue delays
+    # Runs at 11:17 PM EDT (03:17 UTC)
     - cron: '17 3 * * *'
-  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   backup:
@@ -13,23 +13,24 @@ jobs:
       - name: Fetch Today's Data from Supabase
         id: fetch_data
         run: |
-          # Step 1: Force Eastern Timezone
           TODAY=$(TZ='America/New_York' date +'%Y-%m-%d')
+          FILENAME="Organizer_Backup_${TODAY}.json"
           echo "TODAY=$TODAY" >> $GITHUB_ENV
+          echo "FILENAME=$FILENAME" >> $GITHUB_ENV
 
           RESPONSE=$(curl -s -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/organizer_data?date_key=eq.${TODAY}&select=data" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
 
-          # Step 2: Cleanly extract JSON object using jq
+          # Cleanly extract JSON object using jq
           DATA_CONTENT=$(echo "$RESPONSE" | jq -r '.[0].data // {}')
 
-          echo "$DATA_CONTENT" > "Organizer_Backup_${TODAY}.json"
+          echo "$DATA_CONTENT" > "$FILENAME"
 
       - name: Upload Backup to Google Drive
         uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.5
         with:
-          target: "Organizer_Backup_${{ env.TODAY }}.json"
+          target: "./Organizer_Backup_${{ env.TODAY }}.json"
           credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}
           parent_folder_id: "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"
           override: "true"
