@@ -13,100 +13,27 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
-      - name: Install Google APIs
-        run: npm install googleapis
-
-      - name: Fetch and Upload Backup
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          GDRIVE_KEY: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}
+      - name: Fetch Today's Data from Supabase
+        id: fetch_data
         run: |
-          node -e '
-          const fs = require("fs");
-          const { google } = require("googleapis");
+          TODAY=$(TZ='America/New_York' date +'%Y-%m-%d')
+          FILENAME="Organizer_Backup_${TODAY}.json"
+          echo "TODAY=$TODAY" >> $GITHUB_ENV
+          echo "FILENAME=$FILENAME" >> $GITHUB_ENV
 
-          async function run() {
-            const supabaseUrl = process.env.SUPABASE_URL;
-            if (!supabaseUrl) throw new Error("SUPABASE_URL secret is missing!");
+          RESPONSE=$(curl -s -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/organizer_data?date_key=eq.${TODAY}&select=data" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
 
-            // 1. Calculate EDT Date (YYYY-MM-DD)
-            const parts = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-            const fileName = `Organizer_Backup_${parts}.json`;
+          # Extract inner JSON data
+          DATA_CONTENT=$(echo "$RESPONSE" | jq -r '.[0].data // {}')
 
-            console.log(`Fetching data for date: ${parts}...`);
+          echo "$DATA_CONTENT" > "$FILENAME"
 
-            // 2. Query Supabase
-            const endpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/organizer_data?date_key=eq.${parts}&select=data`;
-            const res = await fetch(endpoint, {
-              headers: {
-                "apikey": process.env.SUPABASE_ANON_KEY,
-                "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`
-              }
-            });
-
-            if (!res.ok) {
-              throw new Error(`Supabase request failed with status ${res.status}: ${await res.text()}`);
-            }
-
-            const json = await res.json();
-            const dataContent = JSON.stringify(json[0]?.data || {}, null, 2);
-
-            fs.writeFileSync(fileName, dataContent);
-
-            // 3. Authenticate Google Drive
-            const auth = new google.auth.GoogleAuth({
-              credentials: JSON.parse(process.env.GDRIVE_KEY),
-              scopes: ["https://www.googleapis.com/auth/drive"]
-            });
-            const drive = google.drive({ version: "v3", auth });
-
-            const folderId = "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB";
-
-            // 4. Search existing files using formatted query
-            const query = `"${folderId}" in parents and name = "${fileName}" and trashed = false`;
-            const searchRes = await drive.files.list({
-              q: query,
-              fields: "files(id, name)",
-              supportsAllDrives: true,
-              includeItemsFromAllDrives: true
-            });
-
-            const media = {
-              mimeType: "application/json",
-              body: fs.createReadStream(fileName)
-            };
-
-            if (searchRes.data.files && searchRes.data.files.length > 0) {
-              const existingFileId = searchRes.data.files[0].id;
-              console.log(`Overwriting existing file ${existingFileId}...`);
-              await drive.files.update({
-                fileId: existingFileId,
-                media: media,
-                supportsAllDrives: true
-              });
-              console.log("Successfully updated existing backup!");
-            } else {
-              const uploadRes = await drive.files.create({
-                requestBody: {
-                  name: fileName,
-                  parents: [folderId]
-                },
-                media: media,
-                supportsAllDrives: true,
-                fields: "id"
-              });
-              console.log(`Successfully created new backup! File ID: ${uploadRes.data.id}`);
-            }
-          }
-
-          run().catch(err => {
-            console.error("Backup failed:", err.message || err);
-            process.exit(1);
-          });
-          '
+      - name: Upload Backup to Google Drive
+        uses: adityak25/google-drive-upload-action@v1
+        with:
+          credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}
+          filename: "Organizer_Backup_${{ env.TODAY }}.json"
+          folderId: "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"
+          overwrite: true
