@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install Google APIs
         run: npm install googleapis
@@ -32,15 +32,7 @@ jobs:
           const { google } = require("googleapis");
 
           async function run() {
-            // 1. Calculate EDT Date
-            const dateStr = new Date().toLocaleDateString("en-US", {
-              timeZone: "America/New_York",
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit"
-            }).split("/").reverse().join("-");
-            
-            // Format YYYY-MM-DD
+            // 1. Calculate EDT Date (YYYY-MM-DD)
             const parts = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
             const fileName = `Organizer_Backup_${parts}.json`;
 
@@ -61,7 +53,7 @@ jobs:
             // 3. Authenticate Google Drive
             const auth = new google.auth.GoogleAuth({
               credentials: JSON.parse(process.env.GDRIVE_KEY),
-              scopes: ["https://www.googleapis.com/auth/drive.file"]
+              scopes: ["https://www.googleapis.com/auth/drive"]
             });
             const drive = google.drive({ version: "v3", auth });
 
@@ -76,7 +68,7 @@ jobs:
             };
 
             const uploadRes = await drive.files.create({
-              resource: fileMetadata,
+              requestBody: fileMetadata,
               media: media,
               fields: "id"
             });
