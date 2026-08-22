@@ -30,6 +30,16 @@ jobs:
 
           echo "$DATA_CONTENT" > "$FILENAME"
 
+      - name: Prepare Service Account Key
+        run: |
+          RAW_KEY='${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}'
+          # Check if key is Base64 encoded or plain JSON
+          if echo "$RAW_KEY" | grep -q '^{'; then
+            echo "$RAW_KEY" > sa_key.json
+          else
+            echo "$RAW_KEY" | base64 -d > sa_key.json
+          fi
+
       - name: Upload Backup to Google Drive
         uses: adityak74/google-drive-upload-git-action@main
         with:
