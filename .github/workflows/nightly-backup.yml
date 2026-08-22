@@ -68,24 +68,37 @@ jobs:
             });
             const drive = google.drive({ version: "v3", auth });
 
-            // 4. Upload to Shared Google Drive Folder
-            const fileMetadata = {
-              name: fileName,
-              parents: ["1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"]
-            };
+            // 4. Search if file already exists in target folder
+            const folderId = "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB";
+            const searchRes = await drive.files.list({
+              q: `'${folderId}' in parents and name = '${fileName}' and trashed = false`,
+              fields: "files(id, name)"
+            });
+
             const media = {
               mimeType: "application/json",
               body: fs.createReadStream(fileName)
             };
 
-            const uploadRes = await drive.files.create({
-              requestBody: fileMetadata,
-              media: media,
-              supportsAllDrives: true,
-              fields: "id"
-            });
-
-            console.log(`Successfully uploaded backup file! File ID: ${uploadRes.data.id}`);
+            if (searchRes.data.files.length > 0) {
+              const existingFileId = searchRes.data.files[0].id;
+              console.log(`Overwriting existing file ${existingFileId}...`);
+              await drive.files.update({
+                fileId: existingFileId,
+                media: media
+              });
+              console.log(`Successfully updated existing backup!`);
+            } else {
+              const uploadRes = await drive.files.create({
+                requestBody: {
+                  name: fileName,
+                  parents: [folderId]
+                },
+                media: media,
+                fields: "id"
+              });
+              console.log(`Successfully created new backup! File ID: ${uploadRes.data.id}`);
+            }
           }
 
           run().catch(err => {
