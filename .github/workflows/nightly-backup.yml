@@ -34,7 +34,7 @@ jobs:
           async function run() {
             const supabaseUrl = process.env.SUPABASE_URL;
             if (!supabaseUrl) {
-              throw new Error("SUPABASE_URL secret is missing or empty in GitHub Secrets!");
+              throw new Error("SUPABASE_URL secret is missing!");
             }
 
             // 1. Calculate EDT Date (YYYY-MM-DD)
@@ -68,7 +68,7 @@ jobs:
             });
             const drive = google.drive({ version: "v3", auth });
 
-            // 4. Upload to Google Drive Folder
+            // 4. Upload to Shared Google Drive Folder
             const fileMetadata = {
               name: fileName,
               parents: ["1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"]
@@ -81,6 +81,7 @@ jobs:
             const uploadRes = await drive.files.create({
               requestBody: fileMetadata,
               media: media,
+              supportsAllDrives: true,
               fields: "id"
             });
 
