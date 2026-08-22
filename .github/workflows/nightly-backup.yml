@@ -27,9 +27,9 @@ jobs:
           echo "$DATA_CONTENT" > "Organizer_Backup_${TODAY}.json"
 
       - name: Upload Backup to Google Drive
-        uses: adityak25/google-drive-upload-action@v1
+        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.5
         with:
+          target: "Organizer_Backup_${{ env.TODAY }}.json"
           credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}
-          filename: "Organizer_Backup_${{ env.TODAY }}.json"
-          folderId: "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"
-          overwrite: true
+          parent_folder_id: "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"
+          override: "true"
