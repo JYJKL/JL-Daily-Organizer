@@ -31,9 +31,9 @@ jobs:
           echo "$DATA_CONTENT" > "$FILENAME"
 
       - name: Upload Backup to Google Drive
-        uses: adityak25/google-drive-upload-action@v1
+        uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}
           filename: "Organizer_Backup_${{ env.TODAY }}.json"
           folderId: "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB"
-          overwrite: true
+          overwrite: "true"
