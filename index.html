@@ -187,14 +187,14 @@
           <div id="habits-container" class="space-y-2 min-h-[290px]"></div>
         </section>
 
-        <!-- Stacked Native API Card 1: Month Overview -->
+        <!-- Stacked Native API Card 1: Visual Month Grid -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Month</h2>
+            <h2 id="native-month-label" class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Month</h2>
             <span id="month-events-badge" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-medium">0 Events</span>
           </div>
-          <div id="private-month-container" class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
-            <p class="text-xs text-[#8c9296] text-center py-6">Connect account to load month overview</p>
+          <div id="private-month-container" class="min-h-[220px]">
+            <p class="text-xs text-[#8c9296] text-center py-6">Connect account to load month grid</p>
           </div>
         </section>
 
@@ -573,8 +573,15 @@
 
       try {
         const dateObj = new Date(activeDate + "T00:00:00");
-        const startOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString();
-        const endOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0, 23, 59, 59).toISOString();
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
+
+        const monthName = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const monthHeaderLabel = document.getElementById('native-month-label');
+        if (monthHeaderLabel) monthHeaderLabel.textContent = monthName;
+
+        const startOfMonth = new Date(year, month, 1).toISOString();
+        const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
 
         const monthRes = await fetch(
           `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfMonth}&timeMax=${endOfMonth}&singleEvents=true&orderBy=startTime`,
@@ -587,19 +594,16 @@
           const badge = document.getElementById('month-events-badge');
           if (badge) badge.textContent = `${mEvents.length} Events`;
 
-          if (mEvents.length === 0) {
-            monthContainer.innerHTML = `<p class="text-xs text-[#8c9296] text-center py-6">No events this month</p>`;
-          } else {
-            monthContainer.innerHTML = '';
-            mEvents.slice(0, 10).forEach(e => {
-              const eDate = e.start.dateTime ? new Date(e.start.dateTime).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'All Day';
-              monthContainer.innerHTML += `
-                <div class="flex items-center justify-between p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] text-xs">
-                  <span class="font-semibold text-[#84a98c] dark:text-[#a3b18a]">${eDate}</span>
-                  <span class="text-[#4a4e51] dark:text-[#d1d5db] truncate max-w-[180px]">${escapeHtml(e.summary || 'Untitled')}</span>
-                </div>`;
-            });
-          }
+          const eventCountsByDay = {};
+          mEvents.forEach(e => {
+            const startStr = e.start.dateTime || e.start.date;
+            if (startStr) {
+              const dayNum = parseInt(startStr.split('-')[2].substring(0, 2), 10);
+              eventCountsByDay[dayNum] = (eventCountsByDay[dayNum] || 0) + 1;
+            }
+          });
+
+          renderNativeMonthGrid(year, month, dateObj.getDate(), eventCountsByDay);
         }
 
         const startSched = `${activeDate}T00:00:00Z`;
@@ -640,6 +644,52 @@
       } catch (err) {
         console.error("API Calendar Error:", err);
       }
+    }
+
+    function renderNativeMonthGrid(year, month, activeDay, eventCounts) {
+      const monthContainer = document.getElementById('private-month-container');
+      if (!monthContainer) return;
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      
+      let gridHtml = `
+        <div class="grid grid-cols-7 gap-1 text-center font-sans text-xs mb-1 font-semibold text-[#8c9296] dark:text-[#9ca3af]">
+          ${daysOfWeek.map(d => `<div class="py-1">${d}</div>`).join('')}
+        </div>
+        <div class="grid grid-cols-7 gap-1 text-center font-sans text-xs">
+      `;
+
+      for (let i = 0; i < firstDayIndex; i++) {
+        gridHtml += `<div class="p-2 rounded-lg opacity-20"></div>`;
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const isSelected = day === activeDay;
+        const eventCount = eventCounts[day] || 0;
+        const formattedDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        let cellClasses = "p-1.5 rounded-lg border flex flex-col items-center justify-between h-11 cursor-pointer transition-all ";
+        if (isSelected) {
+          cellClasses += "bg-[#84a98c] text-white border-[#84a98c] font-bold shadow-sm";
+        } else {
+          cellClasses += "bg-[#f8f6f0] dark:bg-[#323538] border-[#e2dedc] dark:border-[#404347] text-[#4a4e51] dark:text-[#d1d5db] hover:border-[#84a98c]";
+        }
+
+        gridHtml += `
+          <div onclick="changeDate('${formattedDateStr}')" class="${cellClasses}">
+            <span>${day}</span>
+            <div class="h-2 flex items-center justify-center">
+              ${eventCount > 0 ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-[#84a98c] dark:bg-[#a3b18a]'}"></span>` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      gridHtml += `</div>`;
+      monthContainer.innerHTML = gridHtml;
     }
 
     async function saveArchivesToGoogleDrive(records) {
