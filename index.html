@@ -596,10 +596,12 @@
       }
 
       try {
-        const dateObj = new Date(activeDate + "T00:00:00");
-        const year = dateObj.getFullYear();
-        const month = dateObj.getMonth();
+        const [yStr, mStr, dStr] = activeDate.split('-');
+        const year = parseInt(yStr, 10);
+        const month = parseInt(mStr, 10) - 1;
+        const day = parseInt(dStr, 10);
 
+        const dateObj = new Date(year, month, day);
         const monthName = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         const monthHeaderLabel = document.getElementById('native-month-label');
         if (monthHeaderLabel) monthHeaderLabel.textContent = monthName;
@@ -646,24 +648,22 @@
           });
         }
 
-        // Filter down to active selection
         const activeCalendars = allCalendars.filter(c => selectedCalendarIds[c.id]);
 
-        // Step B: Query bounds
-        const startOfMonth = new Date(year, month, 1).toISOString();
+        // Query bounds using local midnight limits converted to ISO
+        const startOfMonth = new Date(year, month, 1, 0, 0, 0).toISOString();
         const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
 
-        const startSched = `${activeDate}T00:00:00Z`;
-        let endSchedDate = new Date(activeDate + "T23:59:59Z");
+        const startSchedObj = new Date(year, month, day, 0, 0, 0);
+        const endSchedObj = new Date(year, month, day, 23, 59, 59);
         if (currentCalView === 'week') {
-          endSchedDate.setDate(endSchedDate.getDate() + 6);
+          endSchedObj.setDate(endSchedObj.getDate() + 6);
         }
-        const endSched = endSchedDate.toISOString();
 
         let allMonthEvents = [];
         let allSchedEvents = [];
 
-        // Step C: Fetch events across selected calendars concurrently
+        // Step B: Fetch events across selected calendars concurrently
         await Promise.all(activeCalendars.map(async (cal) => {
           const encodedId = encodeURIComponent(cal.id);
 
@@ -677,7 +677,7 @@
           }
 
           const sRes = await fetch(
-            `https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events?timeMin=${startSched}&timeMax=${endSched}&singleEvents=true&orderBy=startTime`,
+            `https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events?timeMin=${startSchedObj.toISOString()}&timeMax=${endSchedObj.toISOString()}&singleEvents=true&orderBy=startTime`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           if (sRes.ok) {
@@ -686,7 +686,22 @@
           }
         }));
 
-        // Step D: Render Month Grid
+        // Filter out all-day events that fall on a different local date
+        const filteredSchedEvents = allSchedEvents.filter(e => {
+          if (e.start.date) { // All-day event
+            const eventDateStr = e.start.date; // e.g., "2026-08-23"
+            if (currentCalView === 'day') {
+              return eventDateStr === activeDate;
+            } else {
+              // Week view check
+              const endDateStr = endSchedObj.toISOString().split('T')[0];
+              return eventDateStr >= activeDate && eventDateStr <= endDateStr;
+            }
+          }
+          return true; // Timed event
+        });
+
+        // Step C: Render Month Grid
         const badge = document.getElementById('month-events-badge');
         if (badge) badge.textContent = `${allMonthEvents.length} Events`;
 
@@ -699,23 +714,29 @@
           }
         });
 
-        renderNativeMonthGrid(year, month, dateObj.getDate(), eventCountsByDay);
+        renderNativeMonthGrid(year, month, day, eventCountsByDay);
 
-        // Step E: Render Schedule List
-        allSchedEvents.sort((a, b) => {
-          const timeA = new Date(a.start.dateTime || a.start.date).getTime();
-          const timeB = new Date(b.start.dateTime || b.start.date).getTime();
+        // Step D: Render Schedule List
+        filteredSchedEvents.sort((a, b) => {
+          const timeA = new Date(a.start.dateTime || `${a.start.date}T00:00:00`).getTime();
+          const timeB = new Date(b.start.dateTime || `${b.start.date}T00:00:00`).getTime();
           return timeA - timeB;
         });
 
-        if (allSchedEvents.length === 0) {
+        if (filteredSchedEvents.length === 0) {
           scheduleContainer.innerHTML = `<p class="text-xs text-[#8c9296] text-center py-6">No events for selected calendars</p>`;
         } else {
           scheduleContainer.innerHTML = '';
-          allSchedEvents.forEach(e => {
-            const timeLabel = e.start.dateTime ? new Date(e.start.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'All Day';
-            const dayPrefix = currentCalView === 'week' ? `[${new Date(e.start.dateTime || e.start.date).toLocaleDateString([], { weekday: 'short' })}] ` : '';
+          filteredSchedEvents.forEach(e => {
+            const isAllDay = !!e.start.date;
+            const timeLabel = !isAllDay ? new Date(e.start.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'All Day';
             
+            let dayPrefix = '';
+            if (currentCalView === 'week') {
+              const eventDate = isAllDay ? new Date(`${e.start.date}T00:00:00`) : new Date(e.start.dateTime);
+              dayPrefix = `[${eventDate.toLocaleDateString([], { weekday: 'short' })}] `;
+            }
+
             scheduleContainer.innerHTML += `
               <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
                 <div class="flex items-center gap-2 overflow-hidden">
