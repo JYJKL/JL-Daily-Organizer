@@ -36,7 +36,7 @@
     }
   </style>
 
-  <!-- PWA Service Worker Registration with Auto-Reload -->
+  <!-- PWA Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -70,12 +70,25 @@
       </div>
       
       <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-        <!-- Date Selector -->
-        <div class="flex items-center gap-2 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 rounded-lg border border-[#84a98c]/30 dark:border-[#a3b18a]/30">
-          <label for="date-picker" class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] pl-1">Date:</label>
+        
+        <!-- Clean Date Selector with Inline Calendar Icon -->
+        <div class="flex items-center gap-1.5 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 rounded-lg border border-[#84a98c]/30 dark:border-[#a3b18a]/30">
+          <svg class="w-3.5 h-3.5 text-[#8c9296] dark:text-[#9ca3af] pl-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          <label for="date-picker" class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af]">Date:</label>
           <input type="date" id="date-picker" onchange="changeDate(this.value)" 
                  class="bg-transparent text-xs font-medium text-[#383d40] dark:text-[#f3f4f6] focus:outline-none cursor-pointer">
         </div>
+
+        <!-- Google Auth / Connect Account Button (Icon-only on Mobile, Text on Desktop) -->
+        <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" title="Connect Google Account for Drive Backup"
+                class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center gap-1.5 text-xs font-medium text-[#6b8e73] dark:text-[#a3b18a]">
+          <svg class="w-3.5 h-3.5 text-[#84a98c] dark:text-[#a3b18a]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/>
+          </svg>
+          <span class="hidden sm:inline">Connect</span>
+        </button>
 
         <!-- Open Export Modal Button -->
         <button onclick="openExportModal()" title="Export custom range or save to Google Drive / PDF / HTML"
@@ -108,19 +121,24 @@
     <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Timed Schedule -->
-      <section class="lg:col-span-2 bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks</h2>
-          <span class="text-xs text-[#84a98c] dark:text-[#a3b18a] no-print">Auto-saves as you type</span>
-        </div>
-        <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-8 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
-      </section>
+      <!-- Left Column (Time Blocks on Top) -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Timed Schedule -->
+        <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks</h2>
+            <span class="text-xs text-[#84a98c] dark:text-[#a3b18a] no-print">Auto-saves as you type</span>
+          </div>
+          <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-8 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
+        </section>
 
-      <!-- Right Column -->
+      </div>
+
+      <!-- Right Column (To-Do, Habits, & Two Stacked Calendars) -->
       <div class="space-y-6">
         
-        <!-- To-Do List -->
+        <!-- Expanded To-Do List (Height Balanced to Habits) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
           
@@ -133,77 +151,65 @@
             </button>
           </form>
 
-          <ul id="task-list" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></ul>
+          <ul id="task-list" class="space-y-2 max-h-[290px] overflow-y-auto pr-1"></ul>
         </section>
 
-        <!-- Daily Habits -->
+        <!-- Daily Habits with Analytics Sub-Tabs -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-          <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6] mb-4">Habits & Routines</h2>
-          <div class="space-y-2">
-            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] transition border border-[#84a98c]/20 dark:border-[#a3b18a]/20">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💧 Drink Water</span>
-                <span id="water-count" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-medium">(0/4)</span>
-              </div>
-              <input type="checkbox" id="habit-water" disabled class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-not-allowed opacity-80">
-            </label>
-
-            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
-              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🪥 Brush Teeth</span>
-              <input type="checkbox" id="habit-teeth" onchange="toggleHabit('teeth')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
-            </label>
-
-            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
-              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💊 Take Drugs / Meds</span>
-              <input type="checkbox" id="habit-drugs" onchange="toggleHabit('drugs')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
-            </label>
-
-            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
-              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">⚖️ Jelly</span>
-              <input type="checkbox" id="habit-jelly" onchange="toggleHabit('jelly')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
-            </label>
-
-            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
-              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🏃 Exercise / Walk</span>
-              <input type="checkbox" id="habit-exercise" onchange="toggleHabit('exercise')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
-            </label>
-
-            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
-              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">📖 Read 15 Mins</span>
-              <input type="checkbox" id="habit-read" onchange="toggleHabit('read')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
-            </label>
-          </div>
-        </section>
-
-        <!-- External Sync Hub -->
-        <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Synced Tasks Hub</h2>
-            <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" class="text-xs bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] font-medium px-2.5 py-1 rounded-md hover:bg-[#84a98c]/30 transition flex items-center gap-1 no-print">
-              <span>Connect Account</span>
-            </button>
-          </div>
-
-          <!-- Account Tabs Bar -->
-          <div class="flex items-center justify-between border-b border-[#e2dedc] dark:border-[#404347] mb-3 pb-1 gap-2 overflow-x-auto no-print">
-            <div id="tabs-container" class="flex gap-1.5 flex-nowrap"></div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <button onclick="addNewAccountTab()" title="Add dynamic Google account tab" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline px-1 font-sans">+ Add Tab</button>
-              <button id="edit-tab-btn" onclick="editCurrentTabName()" title="Rename active tab" class="text-xs text-[#8c9296] hover:text-[#383d40] dark:hover:text-[#f3f4f6] px-1 font-sans">Edit Tab</button>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Habits & Routines</h2>
+            
+            <!-- Analytics Period Toggles -->
+            <div class="flex gap-1 bg-[#f8f6f0] dark:bg-[#323538] p-1 rounded-lg border border-[#e2dedc] dark:border-[#404347] no-print">
+              <button id="habit-tab-today" onclick="switchHabitTab('today')" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white">Today</button>
+              <button id="habit-tab-week" onclick="switchHabitTab('week')" class="text-[11px] font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]">Week</button>
+              <button id="habit-tab-month" onclick="switchHabitTab('month')" class="text-[11px] font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]">Month</button>
             </div>
           </div>
 
-          <!-- Synced Items List -->
-          <ul id="synced-tasks-list" class="space-y-2 text-xs max-h-[200px] overflow-y-auto pr-1">
-            <li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3">No synced tasks loaded</li>
-          </ul>
+          <div id="habits-container" class="space-y-2 min-h-[290px]">
+            <!-- Dynamic Tab Content Rendered Here -->
+          </div>
         </section>
 
-        <!-- macOS Reminders Shortcuts Cheat Sheet -->
+        <!-- Stacked Calendar 1: Locked to Month View (Dynamic Title) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Mac Reminders Shortcuts</h2>
-            <a href="https://support.apple.com/guide/reminders/keyboard-shortcuts-remn19b3424c/mac" target="_blank" rel="noopener noreferrer" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline">Apple Docs ↗</a>
+            <h2 id="calendar-month-title" class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Google Calendar</h2>
+            <span class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-medium">Month View</span>
+          </div>
+          <div class="w-full h-[320px] rounded-xl overflow-hidden border border-[#e2dedc] dark:border-[#404347]">
+            <iframe src="https://calendar.google.com/calendar/embed?mode=MONTH&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0" 
+                    style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+          </div>
+        </section>
+
+        <!-- Stacked Calendar 2: Schedule Mode Toggle -->
+        <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Schedule</h2>
+            <div class="flex gap-1.5 bg-[#f8f6f0] dark:bg-[#323538] p-1 rounded-lg border border-[#e2dedc] dark:border-[#404347]">
+              <button id="cal-mode-agenda" onclick="switchCalendarMode('AGENDA')" class="text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white">Agenda</button>
+              <button id="cal-mode-week" onclick="switchCalendarMode('WEEK')" class="text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]">Week</button>
+            </div>
+          </div>
+          <div class="w-full h-[320px] rounded-xl overflow-hidden border border-[#e2dedc] dark:border-[#404347]">
+            <iframe id="toggleable-calendar-iframe" 
+                    src="https://calendar.google.com/calendar/embed?mode=AGENDA&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0" 
+                    style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Cheat Sheets Container (Placed at Bottom: 2 Columns on Desktop, Last 2 Stacks on Mobile) -->
+      <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
+        
+        <!-- macOS Reminders Shortcuts Cheat Sheet -->
+        <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Apple Reminders</h2>
+            <a href="https://support.apple.com/guide/reminders/keyboard-shortcuts-remn19b3424c/mac" target="_blank" rel="noopener noreferrer" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline">Docs ↗</a>
           </div>
           
           <div class="space-y-1.5 text-xs font-sans">
@@ -228,28 +234,43 @@
               <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌥ ⌘ T</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set overdue as due today</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌃ ⌘ T</kbd>
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Indent / Outdent</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ ] / [</kbd>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vivaldi Browser Shortcuts Cheat Sheet -->
+        <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Vivaldi Shortcuts</h2>
+            <a href="https://help.vivaldi.com/desktop/shortcuts/keyboard-shortcuts/" target="_blank" rel="noopener noreferrer" class="text-xs text-[#84a98c] dark:text-[#a3b18a] hover:underline">Docs ↗</a>
+          </div>
+          
+          <div class="space-y-1.5 text-xs font-sans">
+            <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Quick Commands</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">F2 / ⌘ E</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Set due next week</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ K</kbd>
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Toggle Panel</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">F4 / ⌥ ⌘ P</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Indent reminder</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ ]</kbd>
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Tile Tabs Selection</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ F9</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Outdent reminder</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ [</kbd>
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Create Bookmark</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ D</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Show all subtasks</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ E</kbd>
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Focus Address Bar</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⌘ L / F6</kbd>
             </div>
             <div class="flex justify-between items-center p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Hide all subtasks</span>
-              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ E</kbd>
+              <span class="text-[#4a4e51] dark:text-[#d1d5db]">Reopen Closed Tab</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-[#e8e4dc] dark:bg-[#282a2d] font-mono font-semibold text-[#84a98c] dark:text-[#a3b18a] border border-[#d2cecf] dark:border-[#404347]">⇧ ⌘ T</kbd>
             </div>
           </div>
         </section>
@@ -316,8 +337,8 @@
     const GOOGLE_CLIENT_ID = "697333791699-1kqaohh8d49eqn7gmbldn1u9dl3q28nl.apps.googleusercontent.com";
 
     let supabaseClient = null;
-    let activeHubTab = 'apple';
-    let googleAccessTokens = {};
+    let googleAccessToken = localStorage.getItem('gtoken_drive') || null;
+    let activeHabitTab = 'today';
 
     const HOURS = [
       "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
@@ -337,15 +358,11 @@
       schedule: {}, 
       waterCheckmarks: {}, 
       tasks: [], 
-      habits: { water: false, teeth: false, drugs: false, jelly: false, exercise: false, read: false }, 
-      appleReminders: [], 
-      googleAccountTasks: { 1: [], 2: [] },
-      tabList: ['apple', 'google_1', 'google_2'],
-      tabNames: { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" }
+      habits: { water: false, teeth: false, drugs: false, jelly: false, exercise: false, read: false }
     };
     let saveTimeout = null;
     let isUserTyping = false;
-    let isLoaded = false; // <--- SAFETY FLAG TO PREVENT INITIAL SAVE OVERWRITES
+    let isLoaded = false;
 
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
@@ -421,11 +438,37 @@
       }
     }
 
-    async function saveArchivesToGoogleDrive(records) {
-      const activeToken = googleAccessTokens[activeHubTab] || Object.values(googleAccessTokens)[0];
+    function handleGoogleAuthRedirect() {
+      const redirectUri = window.location.origin + window.location.pathname;
+      const scope = "https://www.googleapis.com/auth/drive.file";
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=token` +
+        `&scope=${encodeURIComponent(scope)}` +
+        `&prompt=select_account`;
+      
+      window.location.href = authUrl;
+    }
 
-      if (!activeToken) {
-        alert("Please click 'Connect Account' in the Synced Tasks Hub first to authenticate your Google Drive access.");
+    async function checkGoogleOAuthReturn() {
+      const hash = window.location.hash;
+      if (hash && hash.includes("access_token")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+
+        if (accessToken) {
+          localStorage.setItem('gtoken_drive', accessToken);
+          googleAccessToken = accessToken;
+          window.history.replaceState(null, null, window.location.pathname);
+          alert("Google Drive successfully connected!");
+        }
+      }
+    }
+
+    async function saveArchivesToGoogleDrive(records) {
+      if (!googleAccessToken) {
+        alert("Please click 'Connect' in the top header first to authenticate your Google Drive access.");
         handleGoogleAuthRedirect();
         return;
       }
@@ -447,7 +490,7 @@
 
         const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${activeToken}` },
+          headers: { 'Authorization': `Bearer ${googleAccessToken}` },
           body: form
         });
 
@@ -498,325 +541,6 @@
           <div class="mt-4"><h3 class="font-semibold text-lg">To-Do List:</h3><ul class="list-disc pl-5">${tasksHtml || '<li>No tasks</li>'}</ul></div>
         </div>
       `;
-    }
-
-    function renderTabLabels() {
-      const container = document.getElementById('tabs-container');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
-      const tabNames = currentData.tabNames || {};
-
-      tabList.forEach(tabKey => {
-        let defaultLabel = tabKey === 'apple' ? "🍎" : (tabKey === 'google_1' ? "JYJL" : "MYRA");
-        const name = tabNames[tabKey] || defaultLabel;
-        const isActive = activeHubTab === tabKey;
-
-        const btn = document.createElement('button');
-        btn.textContent = name;
-        btn.onclick = () => switchHubTab(tabKey);
-        
-        let activeClass = "bg-[#84a98c] text-white";
-        if (isActive && (name.toUpperCase() === "MYRA" || tabKey === "google_2")) {
-          activeClass = "bg-[#dfbaaf] text-[#383d40]";
-        }
-
-        btn.className = isActive 
-          ? `text-xs font-semibold px-2.5 py-1 rounded-md ${activeClass} transition flex-shrink-0 shadow-sm`
-          : "text-xs font-semibold px-2.5 py-1 rounded-md text-[#8c9296] dark:text-[#9ca3af] hover:bg-[#f8f6f0] dark:hover:bg-[#323538] transition flex-shrink-0";
-        container.appendChild(btn);
-      });
-
-      const editBtn = document.getElementById('edit-tab-btn');
-      if (editBtn) {
-        editBtn.style.display = (activeHubTab === 'apple') ? 'none' : 'inline-block';
-      }
-
-      // SHOW DELETE BUTTON FOR CUSTOM TABS (Keep Apple, JYJL/google_1, MYRA/google_2 protected)
-      let deleteBtn = document.getElementById('delete-tab-btn');
-      if (!deleteBtn) {
-        const actionsContainer = editBtn ? editBtn.parentElement : null;
-        if (actionsContainer) {
-          deleteBtn = document.createElement('button');
-          deleteBtn.id = 'delete-tab-btn';
-          deleteBtn.className = 'text-xs text-[#e07a5f] hover:underline px-1 font-sans';
-          deleteBtn.onclick = deleteCurrentTab;
-          actionsContainer.appendChild(deleteBtn);
-        }
-      }
-      if (deleteBtn) {
-        deleteBtn.style.display = (activeHubTab !== 'apple' && activeHubTab !== 'google_1' && activeHubTab !== 'google_2') ? 'inline-block' : 'none';
-        deleteBtn.textContent = 'Delete Tab';
-      }
-
-      const authBtn = document.getElementById('google-auth-btn');
-      if (authBtn) {
-        authBtn.style.display = (activeHubTab === 'apple') ? 'none' : 'flex';
-      }
-    }
-
-    function deleteCurrentTab() {
-      if (activeHubTab === 'apple' || activeHubTab === 'google_1' || activeHubTab === 'google_2') {
-        alert("Primary tabs cannot be deleted.");
-        return;
-      }
-
-      if (confirm(`Are you sure you want to delete this tab?`)) {
-        // 1. Remove from tab list array
-        currentData.tabList = (currentData.tabList || []).filter(t => t !== activeHubTab);
-        
-        // 2. Remove token and stored tasks if any
-        const accNum = activeHubTab.replace('google_', '');
-        if (currentData.googleAccountTasks) {
-          delete currentData.googleAccountTasks[accNum];
-        }
-        if (currentData.tabNames) {
-          delete currentData.tabNames[activeHubTab];
-        }
-        localStorage.removeItem(`gtoken_${activeHubTab}`);
-
-        // 3. Switch back to Account 1 (JYJL) and save
-        switchHubTab('google_1');
-        saveActiveData();
-      }
-    }
-
-    function addNewAccountTab() {
-      const googleTabs = (currentData.tabList || []).filter(t => t.startsWith('google_'));
-      const newIndex = googleTabs.length + 1;
-      const newKey = `google_${newIndex}`;
-
-      currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
-      if (!currentData.tabList.includes(newKey)) {
-        currentData.tabList.push(newKey);
-      }
-
-      currentData.tabNames = currentData.tabNames || {};
-      currentData.tabNames[newKey] = `Account ${newIndex}`;
-      currentData.googleAccountTasks = currentData.googleAccountTasks || {};
-      currentData.googleAccountTasks[newIndex] = [];
-
-      saveActiveData();
-      switchHubTab(newKey);
-    }
-
-    function editCurrentTabName() {
-      if (activeHubTab === 'apple') return;
-      const currentName = currentData.tabNames[activeHubTab] || activeHubTab;
-      const newName = prompt("Enter custom name for active tab:", currentName);
-      if (newName && newName.trim() !== "") {
-        currentData.tabNames = currentData.tabNames || {};
-        currentData.tabNames[activeHubTab] = newName.trim();
-        saveActiveData();
-        renderTabLabels();
-      }
-    }
-
-    function switchHubTab(tabKey) {
-      activeHubTab = tabKey;
-      renderTabLabels();
-      renderSyncedTasks();
-    }
-
-    function handleGoogleAuthRedirect() {
-      if (activeHubTab === 'apple') return;
-      const redirectUri = window.location.origin + window.location.pathname;
-      const scope = "https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/drive.file";
-      const state = activeHubTab;
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        `&response_type=token` +
-        `&scope=${encodeURIComponent(scope)}` +
-        `&state=${encodeURIComponent(state)}` +
-        `&prompt=select_account`;
-      
-      window.location.href = authUrl;
-    }
-
-    async function checkGoogleOAuthReturn() {
-      const hash = window.location.hash;
-      if (hash && hash.includes("access_token")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-        const state = params.get("state");
-        const targetTab = state && state.startsWith('google_') ? state : 'google_1';
-
-        if (accessToken) {
-          localStorage.setItem(`gtoken_${targetTab}`, accessToken);
-          googleAccessTokens[targetTab] = accessToken;
-          
-          window.history.replaceState(null, null, window.location.pathname);
-          switchHubTab(targetTab);
-          await fetchGoogleTasks(accessToken, targetTab);
-        }
-      } else {
-        (currentData.tabList || ['apple', 'google_1', 'google_2']).forEach(tabKey => {
-          if (tabKey.startsWith('google_')) {
-            const savedToken = localStorage.getItem(`gtoken_${tabKey}`);
-            if (savedToken) {
-              googleAccessTokens[tabKey] = savedToken;
-              fetchGoogleTasks(savedToken, tabKey);
-            }
-          }
-        });
-      }
-    }
-
-    async function fetchGoogleTasks(accessToken, tabKey) {
-      const container = document.getElementById('synced-tasks-list');
-      try {
-        const res = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        
-        if (!res.ok) {
-          const errorText = await res.text();
-          if (container && activeHubTab === tabKey) {
-            container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">API Error (${res.status}): ${escapeHtml(errorText)}</li>`;
-          }
-          return;
-        }
-
-        const listsData = await res.json();
-        if (!listsData.items || listsData.items.length === 0) {
-          if (container && activeHubTab === tabKey) {
-            const tabLabel = currentData.tabNames[tabKey] || tabKey;
-            container.innerHTML = `<li class="text-xs text-[#8c9296] text-center py-2 font-sans">${escapeHtml(tabLabel)} has 0 task lists.</li>`;
-          }
-          return;
-        }
-
-        let allTasks = [];
-
-        for (const list of listsData.items) {
-          const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?showCompleted=true&showHidden=true`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-          });
-          const tasksData = await tasksRes.json();
-
-          if (tasksData.items) {
-            const formatted = tasksData.items
-              .filter(t => t.title && t.title.trim() !== "")
-              .map(t => ({
-                id: t.id,
-                listId: list.id,
-                title: t.title,
-                completed: t.status === 'completed',
-                source: 'google'
-              }));
-            allTasks = allTasks.concat(formatted);
-          }
-        }
-
-        const accNum = tabKey.replace('google_', '');
-        currentData.googleAccountTasks = currentData.googleAccountTasks || {};
-        currentData.googleAccountTasks[accNum] = allTasks;
-
-        saveActiveData();
-        if (activeHubTab === tabKey) {
-          renderSyncedTasks();
-        }
-
-      } catch (err) {
-        if (container && activeHubTab === tabKey) {
-          container.innerHTML = `<li class="text-xs text-red-500 py-2 font-sans">JS Error: ${escapeHtml(err.message)}</li>`;
-        }
-      }
-    }
-
-    async function toggleSyncedTask(id, source, isChecked) {
-      if (source === 'google') {
-        const accNum = activeHubTab.replace('google_', '');
-        const task = (currentData.googleAccountTasks && currentData.googleAccountTasks[accNum] || []).find(t => t.id === id);
-
-        if (task) {
-          task.completed = isChecked;
-          saveActiveData();
-          renderSyncedTasks();
-
-          const token = googleAccessTokens[activeHubTab];
-          if (token && task.listId) {
-            try {
-              await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${task.listId}/tasks/${task.id}`, {
-                method: 'PATCH',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  status: isChecked ? 'completed' : 'needsAction'
-                })
-              });
-            } catch (e) {
-              console.warn("Failed to sync completion to Google Tasks API:", e);
-            }
-          }
-        }
-      } else if (source === 'apple') {
-        let appleData = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
-        appleData = appleData.map(t => (t.id === id || t.title === id) ? { ...t, completed: isChecked } : t);
-        
-        if (currentData.data && currentData.data.appleReminders) {
-          currentData.data.appleReminders = appleData;
-        } else {
-          currentData.appleReminders = appleData;
-        }
-        
-        saveActiveData();
-        renderSyncedTasks();
-      }
-    }
-
-    function renderSyncedTasks() {
-      const container = document.getElementById('synced-tasks-list');
-      if (!container) return;
-      container.innerHTML = '';
-
-      let itemsToDisplay = [];
-
-      if (activeHubTab === 'apple') {
-        const appleData = currentData.appleReminders || (currentData.data && currentData.data.appleReminders) || [];
-        itemsToDisplay = appleData.map(i => ({
-          id: i.id || i.title,
-          title: i.title || i.text || 'Untitled Task',
-          completed: !!i.completed,
-          source: 'apple'
-        }));
-      } else {
-        const accNum = activeHubTab.replace('google_', '');
-        const gTasks = (currentData.googleAccountTasks && currentData.googleAccountTasks[accNum]) ? currentData.googleAccountTasks[accNum] : [];
-        itemsToDisplay = gTasks.map(i => ({ ...i, source: 'google' }));
-      }
-      
-      const sortedItems = itemsToDisplay.sort((a, b) => Number(a.completed) - Number(b.completed));
-
-      if (sortedItems.length === 0) {
-        if (activeHubTab === 'apple') {
-          container.innerHTML = `
-            <li class="p-3 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-lg border border-[#e2dedc] dark:border-[#404347]">
-              <p class="text-xs font-semibold text-[#84a98c] dark:text-[#a3b18a] mb-1">🍎 Apple Reminders Empty</p>
-              <p class="text-[11px] text-[#8c9296] dark:text-[#9ca3af] leading-tight">Run your <strong class="text-[#4a4e51] dark:text-[#d1d5db]">Sync Reminders to Organizer</strong> Shortcut from Mac or iOS to pull in today's tasks.</p>
-            </li>`;
-        } else {
-          const tabLabel = (currentData.tabNames && currentData.tabNames[activeHubTab]) ? currentData.tabNames[activeHubTab] : activeHubTab;
-          container.innerHTML = `<li class="text-[#8c9296] dark:text-[#9ca3af] text-center py-3 font-sans">No synced items for ${escapeHtml(tabLabel)}</li>`;
-        }
-        return;
-      }
-
-      sortedItems.forEach(item => {
-        const li = document.createElement('li');
-        li.className = `flex items-center justify-between p-2 rounded-lg border border-[#e2dedc] dark:border-[#404347] ${item.completed ? 'bg-[#f8f6f0] dark:bg-[#323538] opacity-70' : 'bg-[#fefcf8] dark:bg-[#282a2d]'}`;
-        li.innerHTML = `
-          <div class="flex items-center gap-2 overflow-hidden pr-2">
-            <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleSyncedTask('${escapeHtml(item.id)}', '${item.source}', this.checked)" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-pointer flex-shrink-0">
-            <span class="text-xs font-sans break-words ${item.completed ? 'line-through text-[#8c9296]' : 'text-[#4a4e51] dark:text-[#d1d5db]'}">${escapeHtml(item.title)}</span>
-          </div>
-        `;
-        container.appendChild(li);
-      });
     }
 
     function loadLocalFallback() {
@@ -884,18 +608,14 @@
           schedule: {},
           waterCheckmarks: {},
           tasks: rolledOverTasks,
-          habits: { water: false, teeth: false, drugs: false, jelly: false, exercise: false, read: false },
-          appleReminders: [],
-          googleAccountTasks: { 1: [], 2: [] },
-          tabList: (prevData && prevData.tabList) ? prevData.tabList : ['apple', 'google_1', 'google_2'],
-          tabNames: (prevData && prevData.tabNames) ? prevData.tabNames : { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" }
+          habits: { water: false, teeth: false, drugs: false, jelly: false, exercise: false, read: false }
         };
         await supabaseClient.from('organizer_data').upsert({ date_key: newDay, data: newData });
       }
     }
 
     async function loadDateData(dateStr) {
-      isLoaded = false; // Block auto-saves during fetch
+      isLoaded = false;
       activeDate = dateStr;
       const today = getTodayString();
 
@@ -909,7 +629,7 @@
         if (row && row.data) {
           currentData = row.data;
         } else {
-          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, teeth: false, drugs: false, jelly: false, exercise: false, read: false }, appleReminders: [], googleAccountTasks: { 1: [], 2: [] }, tabList: ['apple', 'google_1', 'google_2'], tabNames: { 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" } };
+          currentData = { schedule: {}, waterCheckmarks: {}, tasks: [], habits: { water: false, teeth: false, drugs: false, jelly: false, exercise: false, read: false } };
         }
       } else {
         loadLocalFallback();
@@ -919,26 +639,20 @@
       currentData.waterCheckmarks = currentData.waterCheckmarks || {};
       currentData.tasks = currentData.tasks || [];
       currentData.habits = Object.assign({ water: false, teeth: false, drugs: false, jelly: false, exercise: false, read: false }, currentData.habits || {});
-      currentData.appleReminders = currentData.appleReminders || [];
-      currentData.googleAccountTasks = currentData.googleAccountTasks || { 1: [], 2: [] };
-      currentData.tabList = currentData.tabList || ['apple', 'google_1', 'google_2'];
-      currentData.tabNames = Object.assign({ 'apple': "🍎", 'google_1': "JYJL", 'google_2': "MYRA" }, currentData.tabNames || {});
 
       updateHeaderUI(dateStr, today);
       renderAllUI();
-      isLoaded = true; // Unblock auto-saves after UI render
+      isLoaded = true;
     }
 
     function renderAllUI() {
       renderSchedule();
       renderTasks();
       renderHabits();
-      renderTabLabels();
-      renderSyncedTasks();
     }
 
     function saveActiveData() {
-      if (!isLoaded) return; // Prevent overwriting data on initial page load
+      if (!isLoaded) return;
 
       localStorage.setItem(`organizer_day_${activeDate}`, JSON.stringify(currentData));
 
@@ -960,6 +674,12 @@
       const dateObj = new Date(selectedDate + "T00:00:00");
       const dateFormatted = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
       document.getElementById('current-date-display').textContent = dateFormatted;
+
+      const monthFormatted = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const monthTitleEl = document.getElementById('calendar-month-title');
+      if (monthTitleEl) {
+        monthTitleEl.textContent = monthFormatted;
+      }
 
       const badge = document.getElementById('date-badge');
       const banner = document.getElementById('archived-banner');
@@ -1132,21 +852,162 @@
       updateProgress();
     }
 
-    function renderHabits() {
-      const completedCount = WATER_SLOTS.filter(slot => currentData.waterCheckmarks && currentData.waterCheckmarks[slot]).length;
-      document.getElementById('water-count').textContent = `(${completedCount}/${WATER_SLOTS.length})`;
-      document.getElementById('habit-water').checked = (completedCount === WATER_SLOTS.length);
+    function switchHabitTab(tab) {
+      activeHabitTab = tab;
       
-      if (currentData.habits) {
-        Object.keys(currentData.habits).forEach(key => {
-          if (key !== 'water') {
-            const el = document.getElementById(`habit-${key}`);
-            if (el) el.checked = !!currentData.habits[key];
-          }
+      const tabToday = document.getElementById('habit-tab-today');
+      const tabWeek = document.getElementById('habit-tab-week');
+      const tabMonth = document.getElementById('habit-tab-month');
+
+      const activeClass = "text-[11px] font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
+      const inactiveClass = "text-[11px] font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]";
+
+      tabToday.className = tab === 'today' ? activeClass : inactiveClass;
+      tabWeek.className = tab === 'week' ? activeClass : inactiveClass;
+      tabMonth.className = tab === 'month' ? activeClass : inactiveClass;
+
+      renderHabits();
+    }
+
+    async function renderHabits() {
+      const container = document.getElementById('habits-container');
+      if (!container) return;
+
+      if (activeHabitTab === 'today') {
+        const completedCount = WATER_SLOTS.filter(slot => currentData.waterCheckmarks && currentData.waterCheckmarks[slot]).length;
+        
+        container.innerHTML = `
+          <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] transition border border-[#84a98c]/20 dark:border-[#a3b18a]/20">
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💧 Drink Water</span>
+              <span id="water-count" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-medium">(${completedCount}/${WATER_SLOTS.length})</span>
+            </div>
+            <input type="checkbox" id="habit-water" disabled ${completedCount === WATER_SLOTS.length ? 'checked' : ''} class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded cursor-not-allowed opacity-80">
+          </label>
+
+          <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
+            <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🪥 Brush Teeth</span>
+            <input type="checkbox" id="habit-teeth" ${currentData.habits?.teeth ? 'checked' : ''} onchange="toggleHabit('teeth')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
+          </label>
+
+          <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
+            <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">💊 Take Drugs / Meds</span>
+            <input type="checkbox" id="habit-drugs" ${currentData.habits?.drugs ? 'checked' : ''} onchange="toggleHabit('drugs')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
+          </label>
+
+          <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
+            <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">⚖️ Take Jelly</span>
+            <input type="checkbox" id="habit-jelly" ${currentData.habits?.jelly ? 'checked' : ''} onchange="toggleHabit('jelly')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
+          </label>
+
+          <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
+            <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">🏃 Exercise / Walk</span>
+            <input type="checkbox" id="habit-exercise" ${currentData.habits?.exercise ? 'checked' : ''} onchange="toggleHabit('exercise')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
+          </label>
+
+          <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] cursor-pointer hover:bg-[#f1eee6] dark:hover:bg-[#3b3e42] transition border border-transparent">
+            <span class="text-sm text-[#4a4e51] dark:text-[#d1d5db]">📖 Read 15 Mins</span>
+            <input type="checkbox" id="habit-read" ${currentData.habits?.read ? 'checked' : ''} onchange="toggleHabit('read')" class="w-4 h-4 accent-[#84a98c] dark:accent-[#a3b18a] rounded">
+          </label>
+        `;
+      } else {
+        container.innerHTML = `<div class="p-8 text-center text-xs text-[#8c9296] font-sans">Loading analytics...</div>`;
+        const periodDays = activeHabitTab === 'week' ? 7 : 30;
+        const analytics = await fetchHabitAnalytics(periodDays);
+
+        const habitLabels = {
+          water: '💧 Drink Water',
+          teeth: '🪥 Brush Teeth',
+          drugs: '💊 Take Drugs / Meds',
+          jelly: '⚖️ Take Jelly',
+          exercise: '🏃 Exercise / Walk',
+          read: '📖 Read 15 Mins'
+        };
+
+        let html = '';
+        Object.keys(habitLabels).forEach(key => {
+          const count = analytics[key] || 0;
+          const percent = Math.round((count / periodDays) * 100);
+
+          html += `
+            <div class="p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] space-y-1">
+              <div class="flex justify-between items-center text-xs font-sans">
+                <span class="text-[#4a4e51] dark:text-[#d1d5db] font-medium">${habitLabels[key]}</span>
+                <span class="text-[#84a98c] dark:text-[#a3b18a] font-semibold">${count}/${periodDays} days (${percent}%)</span>
+              </div>
+              <div class="w-full bg-[#e2dedc] dark:bg-[#282a2d] h-1.5 rounded-full overflow-hidden">
+                <div class="bg-[#84a98c] dark:bg-[#a3b18a] h-full rounded-full transition-all duration-300" style="width: ${percent}%"></div>
+              </div>
+            </div>
+          `;
         });
+        container.innerHTML = html;
       }
 
       updateProgress();
+    }
+
+    async function fetchHabitAnalytics(days) {
+      const counts = { water: 0, teeth: 0, drugs: 0, jelly: 0, exercise: 0, read: 0 };
+      
+      const endDate = new Date(activeDate + "T00:00:00");
+      const startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - (days - 1));
+
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = endDate.toISOString().split('T')[0];
+
+      if (supabaseClient) {
+        const { data } = await supabaseClient
+          .from('organizer_data')
+          .select('data')
+          .gte('date_key', startStr)
+          .lte('date_key', endStr);
+
+        if (data) {
+          data.forEach(row => {
+            const h = row.data?.habits || {};
+            Object.keys(counts).forEach(key => {
+              if (h[key]) counts[key]++;
+            });
+          });
+        }
+      } else {
+        for (let i = 0; i < days; i++) {
+          const d = new Date(endDate);
+          d.setDate(d.getDate() - i);
+          const dStr = d.toISOString().split('T')[0];
+          const local = localStorage.getItem(`organizer_day_${dStr}`);
+          if (local) {
+            try {
+              const parsed = JSON.parse(local);
+              const h = parsed.habits || {};
+              Object.keys(counts).forEach(key => {
+                if (h[key]) counts[key]++;
+              });
+            } catch(e){}
+          }
+        }
+      }
+      return counts;
+    }
+
+    function switchCalendarMode(mode) {
+      const iframe = document.getElementById('toggleable-calendar-iframe');
+      const btnAgenda = document.getElementById('cal-mode-agenda');
+      const btnWeek = document.getElementById('cal-mode-week');
+
+      if (!iframe) return;
+
+      iframe.src = `https://calendar.google.com/calendar/embed?mode=${mode}&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0`;
+
+      if (mode === 'AGENDA') {
+        btnAgenda.className = "text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
+        btnWeek.className = "text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]";
+      } else {
+        btnWeek.className = "text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
+        btnAgenda.className = "text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]";
+      }
     }
 
     function initTheme() { applyTheme(localStorage.getItem('organizer_dark') === 'true'); }
