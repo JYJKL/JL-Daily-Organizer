@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.json">
   
-  <!-- Google Fonts: Cinzel (Trajan Pro style) & EB Garamond -->
+  <!-- Google Fonts: Cinzel & EB Garamond -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -56,6 +56,24 @@
   </script>
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
+  
+  <!-- Passcode Protection Overlay -->
+  <div id="auth-overlay" class="fixed inset-0 bg-[#f5f2eb] dark:bg-[#1e2022] z-50 flex items-center justify-center p-4">
+    <div class="bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-4">
+      <div class="w-12 h-12 bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] rounded-full flex items-center justify-center mx-auto text-xl font-bold">🔒</div>
+      <div>
+        <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">JL's Daily Organizer</h2>
+        <p class="text-xs text-[#8c9296] dark:text-[#9ca3af] mt-1">Enter your passcode to access your planner</p>
+      </div>
+      <form id="auth-form" onsubmit="verifyPasscode(event)" class="space-y-3">
+        <input type="password" id="auth-pin" placeholder="Enter PIN" autofocus required
+               class="w-full text-center tracking-widest text-lg px-4 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg focus:outline-none focus:border-[#84a98c]">
+        <p id="auth-error" class="text-xs text-red-500 hidden">Incorrect PIN code</p>
+        <button type="submit" class="w-full bg-[#84a98c] hover:bg-[#6b8e73] dark:bg-[#a3b18a] text-white dark:text-[#1e2022] py-2 rounded-lg text-sm font-semibold transition">Unlock</button>
+      </form>
+    </div>
+  </div>
+
   <div class="max-w-6xl mx-auto space-y-6">
     
     <!-- Header -->
@@ -82,7 +100,7 @@
         </div>
 
         <!-- Google Auth / Connect Account Button -->
-        <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" title="Connect Google Account for Drive Backup"
+        <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" title="Connect Google Account"
                 class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center gap-1.5 text-xs font-medium text-[#6b8e73] dark:text-[#a3b18a]">
           <svg class="w-3.5 h-3.5 text-[#84a98c] dark:text-[#a3b18a]" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/>
@@ -111,23 +129,6 @@
         </div>
       </div>
     </header>
-
-    <!-- Passcode Protection Overlay -->
-    <div id="auth-overlay" class="fixed inset-0 bg-[#f5f2eb] dark:bg-[#1e2022] z-50 flex items-center justify-center p-4">
-      <div class="bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-4">
-        <div class="w-12 h-12 bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] rounded-full flex items-center justify-center mx-auto text-xl font-bold">🔒</div>
-        <div>
-          <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">JL's Daily Organizer</h2>
-          <p class="text-xs text-[#8c9296] dark:text-[#9ca3af] mt-1">Enter your passcode to access your planner</p>
-        </div>
-        <form id="auth-form" onsubmit="verifyPasscode(event)" class="space-y-3">
-          <input type="password" id="auth-pin" placeholder="Enter PIN" autofocus required
-                 class="w-full text-center tracking-widest text-lg px-4 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg focus:outline-none focus:border-[#84a98c]">
-          <p id="auth-error" class="text-xs text-red-500 hidden">Incorrect PIN code</p>
-          <button type="submit" class="w-full bg-[#84a98c] hover:bg-[#6b8e73] dark:bg-[#a3b18a] text-white dark:text-[#1e2022] py-2 rounded-lg text-sm font-semibold transition">Unlock</button>
-        </form>
-      </div>
-    </div>
 
     <!-- Banner for Historical View Mode -->
     <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#dfbaaf]/60 dark:border-[#dfbaaf]/60 p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center no-print">
@@ -186,33 +187,28 @@
           <div id="habits-container" class="space-y-2 min-h-[290px]"></div>
         </section>
 
-        <!-- Stacked Calendar 1: Month View with Expand Button -->
+        <!-- Stacked Native API Card 1: Month Overview -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
-            <h2 id="calendar-month-title" class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Month</h2>
-              <button onclick="toggleCalendarModal(true)" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-semibold hover:underline flex items-center gap-1">
-                <span>🔍 Expand View</span>
-            </button>
+            <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Month</h2>
+            <span id="month-events-badge" class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-medium">0 Events</span>
           </div>
-          <div class="w-full h-[280px] rounded-xl overflow-hidden border border-[#e2dedc] dark:border-[#404347]">
-            <iframe src="https://calendar.google.com/calendar/embed?mode=MONTH&wkst=1&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&src=bGFteWpqZW5ueUBnbWFpbC5jb20&src=NTMzOGY2N2MzMWI2OTg2NDVlNDhiMDk4NWUzZGMxOWYwYTMzM2EyMGQ5NDQ1Y2I2ZDU0OGY4NzY4NjU0ZjcwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=YzBmZGY2OWJhNmEwODc0YTU0NTQ5ZjMzMjFkZmQ5ZmU5OTExZmE0NzJkZjM1N2RlOWRmYWM3NTkwZTE2ZWU0OUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=bGl0dGxlbW91bnRhaW5sYW1AZ21haWwuY29t&src=ZW4uc2luZ2Fwb3JlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23009688&color=%23f6bf26&color=%237986cb&color=%23abc8fb&color=%23a79b8e" 
-            style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+          <div id="private-month-container" class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+            <p class="text-xs text-[#8c9296] text-center py-6">Connect account to load month overview</p>
           </div>
         </section>
 
-        <!-- Stacked Calendar 2: Schedule View -->
+        <!-- Stacked Native API Card 2: Schedule (Day / Week Mode Toggle) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Schedule</h2>
             <div class="flex gap-1.5 bg-[#f8f6f0] dark:bg-[#323538] p-1 rounded-lg border border-[#e2dedc] dark:border-[#404347]">
-              <button id="cal-mode-agenda" onclick="switchCalendarMode('AGENDA')" class="text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white">Agenda</button>
-              <button id="cal-mode-week" onclick="switchCalendarMode('WEEK')" class="text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]">Week</button>
+              <button id="api-cal-day" onclick="switchApiCalView('day')" class="text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white">Day</button>
+              <button id="api-cal-week" onclick="switchApiCalView('week')" class="text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]">7-Day Week</button>
             </div>
           </div>
-          <div class="w-full h-[320px] rounded-xl overflow-hidden border border-[#e2dedc] dark:border-[#404347]">
-            <iframe id="toggleable-calendar-iframe" 
-                    src="https://calendar.google.com/calendar/embed?mode=AGENDA&wkst=1&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&src=bGFteWpqZW5ueUBnbWFpbC5jb20&src=NTMzOGY2N2MzMWI2OTg2NDVlNDhiMDk4NWUzZGMxOWYwYTMzM2EyMGQ5NDQ1Y2I2ZDU0OGY4NzY4NjU0ZjcwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=YzBmZGY2OWJhNmEwODc0YTU0NTQ5ZjMzMjFkZmQ5ZmU5OTExZmE0NzJkZjM1N2RlOWRmYWM3NTkwZTE2ZWU0OUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=bGl0dGxlbW91bnRhaW5sYW1AZ21haWwuY29t&src=ZW4uc2luZ2Fwb3JlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23009688&color=%23f6bf26&color=%237986cb&color=%23abc8fb&color=%23a79b8e" 
-                    style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+          <div id="private-schedule-container" class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+            <p class="text-xs text-[#8c9296] text-center py-6">Connect account to load schedule</p>
           </div>
         </section>
 
@@ -346,23 +342,12 @@
     </div>
   </div>
 
-  <!-- Fullscreen Calendar Overlay Modal -->
-  <div id="calendar-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 no-print">
-    <div class="bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] rounded-2xl p-6 max-w-5xl w-full h-[85vh] shadow-2xl flex flex-col space-y-4">
-      <div class="flex justify-between items-center border-b border-[#e2dedc] dark:border-[#404347] pb-3">
-        <h3 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Monthly Overview</h3>
-        <button onclick="toggleCalendarModal(false)" class="text-[#8c9296] hover:text-[#383d40] dark:hover:text-[#f3f4f6] text-xl font-bold">✕</button>
-      </div>
-      <div class="flex-1 w-full rounded-xl overflow-hidden border border-[#e2dedc] dark:border-[#404347]">
-        <iframe src="https://calendar.google.com/calendar/embed?mode=MONTH&wkst=1&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&src=bGFteWpqZW5ueUBnbWFpbC5jb20&src=NTMzOGY2N2MzMWI2OTg2NDVlNDhiMDk4NWUzZGMxOWYwYTMzM2EyMGQ5NDQ1Y2I2ZDU0OGY4NzY4NjU0ZjcwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=YzBmZGY2OWJhNmEwODc0YTU0NTQ5ZjMzMjFkZmQ5ZmU5OTExZmE0NzJkZmM3NTkwZTE2ZWU0OUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=bGl0dGxlbW91bnRhaW5sYW1AZ21haWwuY29t&src=ZW4uc2luZ2Fwb3JlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23009688&color=%23f6bf26&color=%237986cb&color=%23abc8fb&color=%23a79b8e" 
-              style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
-      </div>
-    </div>
-  </div>
+  <!-- Custom Floating Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
 
   <script>
-
-    const APP_PIN = "124225"; // Ensure this matches your desired PIN
+    // Passcode Protection Configuration
+    const APP_PIN = "124225"; // Set your personal PIN code here
 
     function verifyPasscode(e) {
       if (e) e.preventDefault();
@@ -372,7 +357,7 @@
       if (inputPin === APP_PIN) {
         localStorage.setItem('app_passcode', inputPin);
         const overlay = document.getElementById('auth-overlay');
-        if (overlay) overlay.style.display = 'none'; // Force hides overlay element
+        if (overlay) overlay.style.display = 'none';
       } else {
         if (errorMsg) errorMsg.classList.remove('hidden');
         document.getElementById('auth-pin').value = '';
@@ -387,13 +372,6 @@
       }
     }
 
-    function toggleCalendarModal(show) {
-    const modal = document.getElementById('calendar-modal');
-    if (modal) {
-    modal.classList.toggle('hidden', !show);
-    }
-  }
-    
     // Database & OAuth Configuration
     const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g";
@@ -402,6 +380,7 @@
     let supabaseClient = null;
     let googleAccessToken = localStorage.getItem('gtoken_drive') || null;
     let activeHabitTab = 'today';
+    let currentCalView = 'day';
 
     const HOURS = [
       "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
@@ -428,9 +407,7 @@
     let isLoaded = false;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      checkPasscodeAuth(); // Check PIN authorization first
-      initTheme();
-      document.getElementById('date-picker').value = activeDate;
+      checkPasscodeAuth();
       initTheme();
       document.getElementById('date-picker').value = activeDate;
       document.getElementById('export-start-date').value = activeDate;
@@ -452,6 +429,36 @@
         loadLocalFallback();
       }
     });
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      const isSuccess = type === 'success';
+
+      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border text-xs font-medium font-sans transition-all duration-300 transform translate-y-4 opacity-0 ${
+        isSuccess
+          ? 'bg-[#f8f6f0] dark:bg-[#282a2d] border-[#84a98c] text-[#6b8e73] dark:text-[#a3b18a]'
+          : 'bg-[#fefcf8] dark:bg-[#282a2d] border-[#dfbaaf] text-[#e07a5f]'
+      }`;
+
+      toast.innerHTML = `
+        <span>${isSuccess ? '✨' : '⚠️'}</span>
+        <span>${escapeHtml(message)}</span>
+      `;
+
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
 
     function openExportModal() { document.getElementById('export-modal').classList.remove('hidden'); }
     function closeExportModal() { document.getElementById('export-modal').classList.add('hidden'); }
@@ -489,8 +496,7 @@
       }
 
       if (records.length === 0) {
-        showToast("No archives found for this date range.", "error");
-        alert("No archives found for the selected range.");
+        showToast("No archives found for the selected range.", "error");
         return;
       }
 
@@ -507,7 +513,7 @@
 
     function handleGoogleAuthRedirect() {
       const redirectUri = window.location.origin + window.location.pathname;
-      const scope = "https://www.googleapis.com/auth/drive.file";
+      const scope = "https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file";
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
@@ -529,14 +535,116 @@
           googleAccessToken = accessToken;
           window.history.replaceState(null, null, window.location.pathname);
           showToast("Google Account Connected!", "success");
-          alert("Google Drive successfully connected!");
+          fetchPrivateCalendarEvents();
         }
+      }
+    }
+
+    function switchApiCalView(view) {
+      currentCalView = view;
+      const btnDay = document.getElementById('api-cal-day');
+      const btnWeek = document.getElementById('api-cal-week');
+
+      if (view === 'day') {
+        btnDay.className = "text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
+        btnWeek.className = "text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]";
+      } else {
+        btnWeek.className = "text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
+        btnDay.className = "text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]";
+      }
+      fetchPrivateCalendarEvents();
+    }
+
+    async function fetchPrivateCalendarEvents() {
+      const monthContainer = document.getElementById('private-month-container');
+      const scheduleContainer = document.getElementById('private-schedule-container');
+      const token = localStorage.getItem('gtoken_drive');
+
+      if (!token) {
+        const promptHtml = `
+          <div class="p-4 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-xl border border-[#e2dedc] dark:border-[#404347]">
+            <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Calendar Access Required</p>
+            <button onclick="handleGoogleAuthRedirect()" class="px-3 py-1.5 rounded-lg bg-[#84a98c] text-white text-xs font-semibold hover:bg-[#6b8e73]">Connect Google Calendar</button>
+          </div>`;
+        if (monthContainer) monthContainer.innerHTML = promptHtml;
+        if (scheduleContainer) scheduleContainer.innerHTML = promptHtml;
+        return;
+      }
+
+      try {
+        const dateObj = new Date(activeDate + "T00:00:00");
+        const startOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString();
+        const endOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+        const monthRes = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfMonth}&timeMax=${endOfMonth}&singleEvents=true&orderBy=startTime`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (monthRes.ok) {
+          const monthData = await monthRes.json();
+          const mEvents = monthData.items || [];
+          const badge = document.getElementById('month-events-badge');
+          if (badge) badge.textContent = `${mEvents.length} Events`;
+
+          if (mEvents.length === 0) {
+            monthContainer.innerHTML = `<p class="text-xs text-[#8c9296] text-center py-6">No events this month</p>`;
+          } else {
+            monthContainer.innerHTML = '';
+            mEvents.slice(0, 10).forEach(e => {
+              const eDate = e.start.dateTime ? new Date(e.start.dateTime).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'All Day';
+              monthContainer.innerHTML += `
+                <div class="flex items-center justify-between p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] text-xs">
+                  <span class="font-semibold text-[#84a98c] dark:text-[#a3b18a]">${eDate}</span>
+                  <span class="text-[#4a4e51] dark:text-[#d1d5db] truncate max-w-[180px]">${escapeHtml(e.summary || 'Untitled')}</span>
+                </div>`;
+            });
+          }
+        }
+
+        const startSched = `${activeDate}T00:00:00Z`;
+        let endSchedDate = new Date(activeDate + "T23:59:59Z");
+        if (currentCalView === 'week') {
+          endSchedDate.setDate(endSchedDate.getDate() + 6);
+        }
+        const endSched = endSchedDate.toISOString();
+
+        const schedRes = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startSched}&timeMax=${endSched}&singleEvents=true&orderBy=startTime`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (schedRes.ok) {
+          const schedData = await schedRes.json();
+          const sEvents = schedData.items || [];
+
+          if (sEvents.length === 0) {
+            scheduleContainer.innerHTML = `<p class="text-xs text-[#8c9296] text-center py-6">No events scheduled</p>`;
+          } else {
+            scheduleContainer.innerHTML = '';
+            sEvents.forEach(e => {
+              const timeLabel = e.start.dateTime ? new Date(e.start.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'All Day';
+              const dayPrefix = currentCalView === 'week' ? `[${new Date(e.start.dateTime || e.start.date).toLocaleDateString([], { weekday: 'short' })}] ` : '';
+              
+              scheduleContainer.innerHTML += `
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span class="text-[10px] font-semibold text-[#84a98c] dark:text-[#a3b18a] bg-[#84a98c]/15 px-2 py-0.5 rounded-md flex-shrink-0">${timeLabel}</span>
+                    <span class="text-xs text-[#4a4e51] dark:text-[#d1d5db] font-medium truncate">${dayPrefix}${escapeHtml(e.summary || 'Untitled')}</span>
+                  </div>
+                </div>`;
+            });
+          }
+        }
+
+      } catch (err) {
+        console.error("API Calendar Error:", err);
       }
     }
 
     async function saveArchivesToGoogleDrive(records) {
       if (!googleAccessToken) {
-        alert("Please click 'Connect' in the top header first to authenticate your Google Drive access.");
+        showToast("Click 'Connect' first to authorize Google Drive access.", "error");
         handleGoogleAuthRedirect();
         return;
       }
@@ -564,14 +672,12 @@
 
         if (res.ok) {
           showToast("Backup saved to Google Drive!", "success");
-          alert(`Successfully saved backup directly to your specified Google Drive folder!`);
         } else {
           const errText = await res.text();
-          showToast(`Google Drive Backup Failed (${res.status})`, "error");
-          alert(`Google Drive API error (${res.status}): ${errText}`);
+          showToast(`Google Drive API error (${res.status})`, "error");
         }
       } catch (e) {
-        alert(`Failed to save to Google Drive: ${e.message}`);
+        showToast(`Drive Backup Failed: ${e.message}`, "error");
       }
     }
 
@@ -587,6 +693,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
+      showToast("HTML Archives Downloaded!", "success");
     }
 
     function exportRecordsAsPrintPDF(records) {
@@ -712,6 +819,7 @@
 
       updateHeaderUI(dateStr, today);
       renderAllUI();
+      fetchPrivateCalendarEvents();
       isLoaded = true;
     }
 
@@ -1056,24 +1164,6 @@
       return counts;
     }
 
-    function switchCalendarMode(mode) {
-      const iframe = document.getElementById('toggleable-calendar-iframe');
-      const btnAgenda = document.getElementById('cal-mode-agenda');
-      const btnWeek = document.getElementById('cal-mode-week');
-
-      if (!iframe) return;
-
-      iframe.src = `https://calendar.google.com/calendar/embed?mode=${mode}&wkst=1&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&src=bGFteWpqZW5ueUBnbWFpbC5jb20&src=NTMzOGY2N2MzMWI2OTg2NDVlNDhiMDk4NWUzZGMxOWYwYTMzM2EyMGQ5NDQ1Y2I2ZDU0OGY4NzY4NjU0ZjcwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=YzBmZGY2OWJhNmEwODc0YTU0NTQ5ZjMzMjFkZmQ5ZmU5OTExZmE0NzJkZjM1N2RlOWRmYWM3NTkwZTE2ZWU0OUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=bGl0dGxlbW91bnRhaW5sYW1AZ21haWwuY29t&src=ZW4uc2luZ2Fwb3JlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23009688&color=%23f6bf26&color=%237986cb&color=%23abc8fb&color=%23a79b8e`;
-
-      if (mode === 'AGENDA') {
-        btnAgenda.className = "text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
-        btnWeek.className = "text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]";
-      } else {
-        btnWeek.className = "text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
-        btnAgenda.className = "text-xs font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]";
-      }
-    }
-
     function initTheme() { applyTheme(localStorage.getItem('organizer_dark') === 'true'); }
     function toggleDarkMode() { const isDark = !document.documentElement.classList.contains('dark'); localStorage.setItem('organizer_dark', isDark); applyTheme(isDark); }
     function applyTheme(isDark) {
@@ -1082,43 +1172,6 @@
     }
 
     function escapeHtml(str) { return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-  
-  function showToast(message, type = 'success') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-  const isSuccess = type === 'success';
-
-  // Sage green for success, muted terracotta red for error
-  toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border text-xs font-medium font-sans transition-all duration-300 transform translate-y-4 opacity-0 ${
-    isSuccess
-      ? 'bg-[#f8f6f0] dark:bg-[#282a2d] border-[#84a98c] text-[#6b8e73] dark:text-[#a3b18a]'
-      : 'bg-[#fefcf8] dark:bg-[#282a2d] border-[#dfbaaf] text-[#e07a5f]'
-  }`;
-
-  toast.innerHTML = `
-    <span>${isSuccess ? '✨' : '⚠️'}</span>
-    <span>${escapeHtml(message)}</span>
-  `;
-
-  container.appendChild(toast);
-
-  // Trigger smooth fade/slide in
-  requestAnimationFrame(() => {
-    toast.classList.remove('translate-y-4', 'opacity-0');
-  });
-
-  // Auto-dismiss after 3.5 seconds
-  setTimeout(() => {
-    toast.classList.add('opacity-0', 'translate-y-2');
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
-}
-    
   </script>
-  <!-- Custom Floating Toast Notifications -->
-  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
-  
 </body>
 </html>
