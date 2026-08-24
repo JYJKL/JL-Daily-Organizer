@@ -362,7 +362,7 @@
 
   <script>
 
-    const APP_PIN = "124225"; // Set your personal secret PIN code here
+    const APP_PIN = "1234"; // Ensure this matches your desired PIN
 
     function verifyPasscode(e) {
       if (e) e.preventDefault();
@@ -371,9 +371,10 @@
 
       if (inputPin === APP_PIN) {
         localStorage.setItem('app_passcode', inputPin);
-        document.getElementById('auth-overlay').classList.add('hidden');
+        const overlay = document.getElementById('auth-overlay');
+        if (overlay) overlay.style.display = 'none'; // Force hides overlay element
       } else {
-        errorMsg.classList.remove('hidden');
+        if (errorMsg) errorMsg.classList.remove('hidden');
         document.getElementById('auth-pin').value = '';
       }
     }
@@ -381,7 +382,8 @@
     function checkPasscodeAuth() {
       const savedPin = localStorage.getItem('app_passcode');
       if (savedPin === APP_PIN) {
-        document.getElementById('auth-overlay').classList.add('hidden');
+        const overlay = document.getElementById('auth-overlay');
+        if (overlay) overlay.style.display = 'none';
       }
     }
 
@@ -426,7 +428,6 @@
     let isLoaded = false;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      document.addEventListener('DOMContentLoaded', async () => {
       checkPasscodeAuth(); // Check PIN authorization first
       initTheme();
       document.getElementById('date-picker').value = activeDate;
