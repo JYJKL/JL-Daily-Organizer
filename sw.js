@@ -1,4 +1,4 @@
-const CACHE_NAME = 'organizer-store-v15';
+const CACHE_NAME = 'organizer-store-v16';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
