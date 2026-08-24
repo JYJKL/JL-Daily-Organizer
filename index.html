@@ -513,14 +513,14 @@
 
     function handleGoogleAuthRedirect() {
       const redirectUri = window.location.origin + window.location.pathname;
-      const scope = "https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file";
+      const scope = "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file";
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
         `&response_type=token` +
         `&scope=${encodeURIComponent(scope)}` +
         `&prompt=select_account`;
-      
+  
       window.location.href = authUrl;
     }
 
@@ -556,95 +556,131 @@
     }
 
     async function fetchPrivateCalendarEvents() {
-      const monthContainer = document.getElementById('private-month-container');
-      const scheduleContainer = document.getElementById('private-schedule-container');
-      const token = localStorage.getItem('gtoken_drive');
+  const monthContainer = document.getElementById('private-month-container');
+  const scheduleContainer = document.getElementById('private-schedule-container');
+  const token = localStorage.getItem('gtoken_drive');
 
-      if (!token) {
-        const promptHtml = `
-          <div class="p-4 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-xl border border-[#e2dedc] dark:border-[#404347]">
-            <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Calendar Access Required</p>
-            <button onclick="handleGoogleAuthRedirect()" class="px-3 py-1.5 rounded-lg bg-[#84a98c] text-white text-xs font-semibold hover:bg-[#6b8e73]">Connect Google Calendar</button>
-          </div>`;
-        if (monthContainer) monthContainer.innerHTML = promptHtml;
-        if (scheduleContainer) scheduleContainer.innerHTML = promptHtml;
+  if (!token) {
+    const promptHtml = `
+      <div class="p-4 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-xl border border-[#e2dedc] dark:border-[#404347]">
+        <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Calendar Access Required</p>
+        <button onclick="handleGoogleAuthRedirect()" class="px-3 py-1.5 rounded-lg bg-[#84a98c] text-white text-xs font-semibold hover:bg-[#6b8e73]">Connect Google Calendar</button>
+      </div>`;
+    if (monthContainer) monthContainer.innerHTML = promptHtml;
+    if (scheduleContainer) scheduleContainer.innerHTML = promptHtml;
+    return;
+  }
+
+  try {
+    const dateObj = new Date(activeDate + "T00:00:00");
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth();
+
+    const monthName = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const monthHeaderLabel = document.getElementById('native-month-label');
+    if (monthHeaderLabel) monthHeaderLabel.textContent = monthName;
+
+    // Step A: Fetch all user calendars
+    const calListRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!calListRes.ok) {
+      if (calListRes.status === 401) {
+        localStorage.removeItem('gtoken_drive');
+        fetchPrivateCalendarEvents();
         return;
       }
-
-      try {
-        const dateObj = new Date(activeDate + "T00:00:00");
-        const year = dateObj.getFullYear();
-        const month = dateObj.getMonth();
-
-        const monthName = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        const monthHeaderLabel = document.getElementById('native-month-label');
-        if (monthHeaderLabel) monthHeaderLabel.textContent = monthName;
-
-        const startOfMonth = new Date(year, month, 1).toISOString();
-        const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
-
-        const monthRes = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfMonth}&timeMax=${endOfMonth}&singleEvents=true&orderBy=startTime`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (monthRes.ok) {
-          const monthData = await monthRes.json();
-          const mEvents = monthData.items || [];
-          const badge = document.getElementById('month-events-badge');
-          if (badge) badge.textContent = `${mEvents.length} Events`;
-
-          const eventCountsByDay = {};
-          mEvents.forEach(e => {
-            const startStr = e.start.dateTime || e.start.date;
-            if (startStr) {
-              const dayNum = parseInt(startStr.split('-')[2].substring(0, 2), 10);
-              eventCountsByDay[dayNum] = (eventCountsByDay[dayNum] || 0) + 1;
-            }
-          });
-
-          renderNativeMonthGrid(year, month, dateObj.getDate(), eventCountsByDay);
-        }
-
-        const startSched = `${activeDate}T00:00:00Z`;
-        let endSchedDate = new Date(activeDate + "T23:59:59Z");
-        if (currentCalView === 'week') {
-          endSchedDate.setDate(endSchedDate.getDate() + 6);
-        }
-        const endSched = endSchedDate.toISOString();
-
-        const schedRes = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startSched}&timeMax=${endSched}&singleEvents=true&orderBy=startTime`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (schedRes.ok) {
-          const schedData = await schedRes.json();
-          const sEvents = schedData.items || [];
-
-          if (sEvents.length === 0) {
-            scheduleContainer.innerHTML = `<p class="text-xs text-[#8c9296] text-center py-6">No events scheduled</p>`;
-          } else {
-            scheduleContainer.innerHTML = '';
-            sEvents.forEach(e => {
-              const timeLabel = e.start.dateTime ? new Date(e.start.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'All Day';
-              const dayPrefix = currentCalView === 'week' ? `[${new Date(e.start.dateTime || e.start.date).toLocaleDateString([], { weekday: 'short' })}] ` : '';
-              
-              scheduleContainer.innerHTML += `
-                <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
-                  <div class="flex items-center gap-2 overflow-hidden">
-                    <span class="text-[10px] font-semibold text-[#84a98c] dark:text-[#a3b18a] bg-[#84a98c]/15 px-2 py-0.5 rounded-md flex-shrink-0">${timeLabel}</span>
-                    <span class="text-xs text-[#4a4e51] dark:text-[#d1d5db] font-medium truncate">${dayPrefix}${escapeHtml(e.summary || 'Untitled')}</span>
-                  </div>
-                </div>`;
-            });
-          }
-        }
-
-      } catch (err) {
-        console.error("API Calendar Error:", err);
-      }
+      throw new Error(`Calendar List API returned ${calListRes.status}`);
     }
+
+    const calListData = await calListRes.json();
+    const calendars = (calListData.items || []).filter(c => c.selected !== false); // Only checked/active calendars
+
+    // Date Bounds
+    const startOfMonth = new Date(year, month, 1).toISOString();
+    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+
+    const startSched = `${activeDate}T00:00:00Z`;
+    let endSchedDate = new Date(activeDate + "T23:59:59Z");
+    if (currentCalView === 'week') {
+      endSchedDate.setDate(endSchedDate.getDate() + 6);
+    }
+    const endSched = endSchedDate.toISOString();
+
+    // Step B: Fetch events across all active calendars concurrently
+    let allMonthEvents = [];
+    let allSchedEvents = [];
+
+    await Promise.all(calendars.map(async (cal) => {
+      const encodedId = encodeURIComponent(cal.id);
+
+      // Month query
+      const mRes = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events?timeMin=${startOfMonth}&timeMax=${endOfMonth}&singleEvents=true&orderBy=startTime`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (mRes.ok) {
+        const mData = await mRes.json();
+        allMonthEvents.push(...(mData.items || []));
+      }
+
+      // Schedule query
+      const sRes = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events?timeMin=${startSched}&timeMax=${endSched}&singleEvents=true&orderBy=startTime`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        const itemsWithCal = (sData.items || []).map(item => ({ ...item, calSummary: cal.summary }));
+        allSchedEvents.push(...itemsWithCal);
+      }
+    }));
+
+    // Step C: Render Month Grid
+    const badge = document.getElementById('month-events-badge');
+    if (badge) badge.textContent = `${allMonthEvents.length} Events`;
+
+    const eventCountsByDay = {};
+    allMonthEvents.forEach(e => {
+      const startStr = e.start.dateTime || e.start.date;
+      if (startStr) {
+        const dayNum = parseInt(startStr.split('-')[2].substring(0, 2), 10);
+        eventCountsByDay[dayNum] = (eventCountsByDay[dayNum] || 0) + 1;
+      }
+    });
+
+    renderNativeMonthGrid(year, month, dateObj.getDate(), eventCountsByDay);
+
+    // Step D: Render Schedule List (Sorted by Start Time)
+    allSchedEvents.sort((a, b) => {
+      const timeA = new Date(a.start.dateTime || a.start.date).getTime();
+      const timeB = new Date(b.start.dateTime || b.start.date).getTime();
+      return timeA - timeB;
+    });
+
+    if (allSchedEvents.length === 0) {
+      scheduleContainer.innerHTML = `<p class="text-xs text-[#8c9296] text-center py-6">No events scheduled across calendars</p>`;
+    } else {
+      scheduleContainer.innerHTML = '';
+      allSchedEvents.forEach(e => {
+        const timeLabel = e.start.dateTime ? new Date(e.start.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'All Day';
+        const dayPrefix = currentCalView === 'week' ? `[${new Date(e.start.dateTime || e.start.date).toLocaleDateString([], { weekday: 'short' })}] ` : '';
+        
+        scheduleContainer.innerHTML += `
+          <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347]">
+            <div class="flex items-center gap-2 overflow-hidden">
+              <span class="text-[10px] font-semibold text-[#84a98c] dark:text-[#a3b18a] bg-[#84a98c]/15 px-2 py-0.5 rounded-md flex-shrink-0">${timeLabel}</span>
+              <span class="text-xs text-[#4a4e51] dark:text-[#d1d5db] font-medium truncate">${dayPrefix}${escapeHtml(e.summary || 'Untitled')}</span>
+            </div>
+          </div>`;
+      });
+    }
+
+  } catch (err) {
+    console.error("Multi-Calendar API Error:", err);
+  }
+}
 
     function renderNativeMonthGrid(year, month, activeDay, eventCounts) {
       const monthContainer = document.getElementById('private-month-container');
