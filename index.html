@@ -176,12 +176,12 @@
             <span class="text-xs text-[#84a98c] dark:text-[#a3b18a] font-medium">Month View</span>
           </div>
           <div class="w-full h-[320px] rounded-xl overflow-hidden border border-[#e2dedc] dark:border-[#404347]">
-            <iframe src="https://calendar.google.com/calendar/embed?mode=MONTH&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0" 
+            <iframe src="https://calendar.google.com/calendar/embed?mode=MONTH&wkst=1&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&src=bGFteWpqZW5ueUBnbWFpbC5jb20&src=NTMzOGY2N2MzMWI2OTg2NDVlNDhiMDk4NWUzZGMxOWYwYTMzM2EyMGQ5NDQ1Y2I2ZDU0OGY4NzY4NjU0ZjcwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=YzBmZGY2OWJhNmEwODc0YTU0NTQ5ZjMzMjFkZmQ5ZmU5OTExZmE0NzJkZjM1N2RlOWRmYWM3NTkwZTE2ZWU0OUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=bGl0dGxlbW91bnRhaW5sYW1AZ21haWwuY29t&src=ZW4uc2luZ2Fwb3JlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23009688&color=%23f6bf26&color=%237986cb&color=%23abc8fb&color=%23a79b8e" 
                     style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
           </div>
         </section>
 
-        <!-- Stacked Calendar 2: Agenda / Week View -->
+        <!-- Stacked Calendar 2: Schedule View -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Schedule</h2>
@@ -192,7 +192,7 @@
           </div>
           <div class="w-full h-[320px] rounded-xl overflow-hidden border border-[#e2dedc] dark:border-[#404347]">
             <iframe id="toggleable-calendar-iframe" 
-                    src="https://calendar.google.com/calendar/embed?mode=AGENDA&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0" 
+                    src="https://calendar.google.com/calendar/embed?mode=AGENDA&wkst=1&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&src=bGFteWpqZW5ueUBnbWFpbC5jb20&src=NTMzOGY2N2MzMWI2OTg2NDVlNDhiMDk4NWUzZGMxOWYwYTMzM2EyMGQ5NDQ1Y2I2ZDU0OGY4NzY4NjU0ZjcwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=YzBmZGY2OWJhNmEwODc0YTU0NTQ5ZjMzMjFkZmQ5ZmU5OTExZmE0NzJkZjM1N2RlOWRmYWM3NTkwZTE2ZWU0OUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=bGl0dGxlbW91bnRhaW5sYW1AZ21haWwuY29t&src=ZW4uc2luZ2Fwb3JlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23009688&color=%23f6bf26&color=%237986cb&color=%23abc8fb&color=%23a79b8e" 
                     style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
           </div>
         </section>
@@ -996,7 +996,7 @@
 
       if (!iframe) return;
 
-      iframe.src = `https://calendar.google.com/calendar/embed?mode=${mode}&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0`;
+      iframe.src = `https://calendar.google.com/calendar/embed?mode=${mode}&wkst=1&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&src=bGFteWpqZW5ueUBnbWFpbC5jb20&src=NTMzOGY2N2MzMWI2OTg2NDVlNDhiMDk4NWUzZGMxOWYwYTMzM2EyMGQ5NDQ1Y2I2ZDU0OGY4NzY4NjU0ZjcwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=YzBmZGY2OWJhNmEwODc0YTU0NTQ5ZjMzMjFkZmQ5ZmU5OTExZmE0NzJkZjM1N2RlOWRmYWM3NTkwZTE2ZWU0OUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=bGl0dGxlbW91bnRhaW5sYW1AZ21haWwuY29t&src=ZW4uc2luZ2Fwb3JlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23009688&color=%23f6bf26&color=%237986cb&color=%23abc8fb&color=%23a79b8e`;
 
       if (mode === 'AGENDA') {
         btnAgenda.className = "text-xs font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white";
