@@ -87,45 +87,51 @@
         <p id="current-date-display" class="text-[#8c9296] dark:text-[#9ca3af] text-sm mt-1 font-garamond italic"></p>
       </div>
       
-      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-        
-        <!-- Clean Date Selector with Inline Calendar Icon -->
-        <div class="flex items-center gap-1.5 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 rounded-lg border border-[#84a98c]/30 dark:border-[#a3b18a]/30">
-          <svg class="w-3.5 h-3.5 text-[#8c9296] dark:text-[#9ca3af] pl-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-          </svg>
-          <label for="date-picker" class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af]">Date:</label>
+      <div class="flex flex-col w-full sm:w-auto gap-2.5">
+        <!-- Date Selector (Full row on Mobile) -->
+        <div class="flex items-center justify-between sm:justify-start gap-1.5 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 px-3 rounded-lg border border-[#84a98c]/30 dark:border-[#a3b18a]/30 w-full sm:w-auto">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-[#8c9296] dark:text-[#9ca3af] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <label for="date-picker" class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af]">Date:</label>
+          </div>
           <input type="date" id="date-picker" onchange="changeDate(this.value)" 
                  class="bg-transparent text-xs font-medium text-[#383d40] dark:text-[#f3f4f6] focus:outline-none cursor-pointer">
         </div>
 
-        <!-- Google Auth / Connect Account Button -->
-        <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" title="Connect Google Account"
-                class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center gap-1.5 text-xs font-medium text-[#6b8e73] dark:text-[#a3b18a]">
-          <svg class="w-3.5 h-3.5 text-[#84a98c] dark:text-[#a3b18a]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/>
-          </svg>
-          <span class="hidden sm:inline">Connect</span>
-        </button>
+        <!-- Single Action Line: Buttons + Progress Side-by-Side -->
+        <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
+          <div class="flex items-center gap-2">
+            <!-- Google Auth / Connect Account Button -->
+            <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" title="Connect Google Account"
+                    class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center gap-1.5 text-xs font-medium text-[#6b8e73] dark:text-[#a3b18a]">
+              <svg class="w-3.5 h-3.5 text-[#84a98c] dark:text-[#a3b18a]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/>
+              </svg>
+              <span class="hidden sm:inline">Connect</span>
+            </button>
 
-        <!-- Open Export Modal Button -->
-        <button onclick="openExportModal()" title="Export custom range or save to Google Drive / PDF / HTML"
-                class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
-          <svg class="w-4 h-4 text-[#84a98c] dark:text-[#a3b18a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-          </svg>
-        </button>
+            <!-- Open Export Modal Button -->
+            <button onclick="openExportModal()" title="Export custom range or save to Google Drive / PDF / HTML"
+                    class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
+              <svg class="w-4 h-4 text-[#84a98c] dark:text-[#a3b18a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+              </svg>
+            </button>
 
-        <!-- Theme Toggle -->
-        <button id="theme-toggle" onclick="toggleDarkMode()" title="Toggle Light/Dark Theme"
-                class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
-          <span id="theme-icon" class="text-sm">🌙</span>
-        </button>
+            <!-- Theme Toggle -->
+            <button id="theme-toggle" onclick="toggleDarkMode()" title="Toggle Light/Dark Theme"
+                    class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
+              <span id="theme-icon" class="text-sm">🌙</span>
+            </button>
+          </div>
 
-        <!-- Progress -->
-        <div class="text-right pl-2 border-l border-[#e8e4dc] dark:border-[#383b3e]">
-          <span class="text-[10px] font-medium uppercase tracking-wider text-[#8c9296] dark:text-[#9ca3af] block">Progress</span>
-          <div class="text-xl font-semibold text-[#84a98c] dark:text-[#a3b18a]" id="progress-text">0%</div>
+          <!-- Progress Inline on Right -->
+          <div class="text-right pl-3 border-l border-[#e8e4dc] dark:border-[#383b3e]">
+            <span class="text-[9px] font-medium uppercase tracking-wider text-[#8c9296] dark:text-[#9ca3af] block">Progress</span>
+            <div class="text-lg font-semibold text-[#84a98c] dark:text-[#a3b18a] leading-none" id="progress-text">0%</div>
+          </div>
         </div>
       </div>
     </header>
