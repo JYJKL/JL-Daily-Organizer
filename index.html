@@ -81,7 +81,7 @@
                  class="bg-transparent text-xs font-medium text-[#383d40] dark:text-[#f3f4f6] focus:outline-none cursor-pointer">
         </div>
 
-        <!-- Google Auth / Connect Account Button (Icon-only on Mobile, Text on Desktop) -->
+        <!-- Google Auth / Connect Account Button -->
         <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" title="Connect Google Account for Drive Backup"
                 class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center gap-1.5 text-xs font-medium text-[#6b8e73] dark:text-[#a3b18a]">
           <svg class="w-3.5 h-3.5 text-[#84a98c] dark:text-[#a3b18a]" fill="currentColor" viewBox="0 0 24 24">
@@ -135,10 +135,10 @@
 
       </div>
 
-      <!-- Right Column (To-Do, Habits, & Two Stacked Calendars) -->
+      <!-- Right Column -->
       <div class="space-y-6">
         
-        <!-- Expanded To-Do List (Height Balanced to Habits) -->
+        <!-- Expanded To-Do List -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
           
@@ -159,7 +159,6 @@
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Habits & Routines</h2>
             
-            <!-- Analytics Period Toggles -->
             <div class="flex gap-1 bg-[#f8f6f0] dark:bg-[#323538] p-1 rounded-lg border border-[#e2dedc] dark:border-[#404347] no-print">
               <button id="habit-tab-today" onclick="switchHabitTab('today')" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#84a98c] text-white">Today</button>
               <button id="habit-tab-week" onclick="switchHabitTab('week')" class="text-[11px] font-semibold px-2 py-0.5 rounded text-[#8c9296] hover:bg-[#e2dedc] dark:hover:bg-[#404347]">Week</button>
@@ -167,12 +166,10 @@
             </div>
           </div>
 
-          <div id="habits-container" class="space-y-2 min-h-[290px]">
-            <!-- Dynamic Tab Content Rendered Here -->
-          </div>
+          <div id="habits-container" class="space-y-2 min-h-[290px]"></div>
         </section>
 
-        <!-- Stacked Calendar 1: Locked to Month View (Dynamic Title) -->
+        <!-- Stacked Calendar 1: Month View -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
             <h2 id="calendar-month-title" class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Google Calendar</h2>
@@ -184,7 +181,7 @@
           </div>
         </section>
 
-        <!-- Stacked Calendar 2: Schedule Mode Toggle -->
+        <!-- Stacked Calendar 2: Agenda / Week View -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Schedule</h2>
@@ -202,10 +199,10 @@
 
       </div>
 
-      <!-- Cheat Sheets Container (Placed at Bottom: 2 Columns on Desktop, Last 2 Stacks on Mobile) -->
+      <!-- Cheat Sheets Container -->
       <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
         
-        <!-- macOS Reminders Shortcuts Cheat Sheet -->
+        <!-- macOS Reminders Shortcuts -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Apple Reminders</h2>
@@ -240,7 +237,7 @@
           </div>
         </section>
 
-        <!-- Vivaldi Browser Shortcuts Cheat Sheet -->
+        <!-- Vivaldi Shortcuts -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Vivaldi Shortcuts</h2>
