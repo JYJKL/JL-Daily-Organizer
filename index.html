@@ -445,8 +445,16 @@
 
       if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
-          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          
+          // Initialize Supabase Client with explicit session detection
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true
+            }
+          });
+
+          // Single, central auth listener
           supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session) {
               document.getElementById('auth-overlay').style.display = 'none';
@@ -461,6 +469,7 @@
             }
           });
 
+          // Immediate session check
           const { data: { session } } = await supabaseClient.auth.getSession();
           if (session) {
             document.getElementById('auth-overlay').style.display = 'none';
@@ -470,15 +479,19 @@
             }
             await checkRolloverAndLoad();
             subscribeRealtime();
-          } else if (!window.location.hash.includes('access_token')) {
-            document.getElementById('auth-overlay').style.display = 'flex';
+          } else {
+            // Check if URL has OAuth response tokens processing
+            const hasAuthParams = window.location.hash.includes('access_token') || 
+                                  window.location.search.includes('code=');
+            if (!hasAuthParams) {
+              document.getElementById('auth-overlay').style.display = 'flex';
+            }
           }
+
         } catch (e) {
           console.warn("Supabase init failed:", e);
         }
       }
-
-      await checkGoogleOAuthReturn();
     });
 
     function showToast(message, type = 'success') {
@@ -573,22 +586,6 @@
         `&prompt=select_account`;
       
       window.location.href = authUrl;
-    }
-
-    async function checkGoogleOAuthReturn() {
-      const hash = window.location.hash;
-      if (hash && hash.includes("access_token") && !hash.includes("type=")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-
-        if (accessToken) {
-          localStorage.setItem('gtoken_drive', accessToken);
-          googleAccessToken = accessToken;
-          window.history.replaceState(null, null, window.location.pathname);
-          showToast("Google Account Connected!", "success");
-          fetchPrivateCalendarEvents();
-        }
-      }
     }
 
     function switchApiCalView(view) {
