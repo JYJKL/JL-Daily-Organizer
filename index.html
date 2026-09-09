@@ -57,8 +57,8 @@
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   
-  <!-- Supabase Google Login Overlay -->
-  <div id="auth-overlay" class="fixed inset-0 bg-[#f5f2eb] dark:bg-[#1e2022] z-50 flex items-center justify-center p-4">
+  <!-- Supabase Google Login Overlay (Hidden by default to prevent refresh flash) -->
+  <div id="auth-overlay" class="fixed inset-0 bg-[#f5f2eb] dark:bg-[#1e2022] z-50 hidden items-center justify-center p-4">
     <div class="bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-4">
       <div class="w-12 h-12 bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] rounded-full flex items-center justify-center mx-auto text-xl font-bold">🔐</div>
       <div>
@@ -445,7 +445,6 @@
 
       if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
-          // Initialize Supabase Client with explicit session detection
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
               persistSession: true,
@@ -454,10 +453,14 @@
             }
           });
 
-          // Single, central auth listener
+          // Auth State Listener
           supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            const overlay = document.getElementById('auth-overlay');
             if (session) {
-              document.getElementById('auth-overlay').style.display = 'none';
+              if (overlay) {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+              }
               if (session.provider_token) {
                 localStorage.setItem('gtoken_drive', session.provider_token);
                 googleAccessToken = session.provider_token;
@@ -465,26 +468,34 @@
               await checkRolloverAndLoad();
               subscribeRealtime();
             } else {
-              document.getElementById('auth-overlay').style.display = 'flex';
+              // Only reveal overlay if definitely signed out
+              if (overlay) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+              }
             }
           });
 
-          // Immediate session check
+          // Check existing session
           const { data: { session } } = await supabaseClient.auth.getSession();
+          const overlay = document.getElementById('auth-overlay');
+
           if (session) {
-            document.getElementById('auth-overlay').style.display = 'none';
+            if (overlay) {
+              overlay.classList.add('hidden');
+              overlay.classList.remove('flex');
+            }
             if (session.provider_token) {
               localStorage.setItem('gtoken_drive', session.provider_token);
               googleAccessToken = session.provider_token;
             }
             await checkRolloverAndLoad();
             subscribeRealtime();
-          } else {
-            // Check if URL has OAuth response tokens processing
-            const hasAuthParams = window.location.hash.includes('access_token') || 
-                                  window.location.search.includes('code=');
-            if (!hasAuthParams) {
-              document.getElementById('auth-overlay').style.display = 'flex';
+          } else if (!window.location.hash.includes('access_token') && !window.location.search.includes('code=')) {
+            // No session and no incoming OAuth tokens -> show login
+            if (overlay) {
+              overlay.classList.remove('hidden');
+              overlay.classList.add('flex');
             }
           }
 
