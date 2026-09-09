@@ -1136,7 +1136,7 @@
       e.preventDefault();
       const input = document.getElementById('task-input');
       const text = input.value.trim();
-      if {
+      if (text) {
         currentData.tasks.push({ id: Date.now(), text, completed: false });
         input.value = '';
         saveActiveData();
