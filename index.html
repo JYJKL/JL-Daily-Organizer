@@ -401,25 +401,6 @@
       }
     }
 
-    async function checkPasscodeAuth() {
-      if (!supabaseClient) return;
-      
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      
-      if (session) {
-        const overlay = document.getElementById('auth-overlay');
-        if (overlay) overlay.style.display = 'none';
-        
-        if (session.provider_token) {
-          localStorage.setItem('gtoken_drive', session.provider_token);
-          googleAccessToken = session.provider_token;
-        }
-      } else {
-        const overlay = document.getElementById('auth-overlay');
-        if (overlay) overlay.style.display = 'flex';
-      }
-    }
-
     // Database & OAuth Configuration
     const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g";
@@ -466,27 +447,8 @@
         try {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           
-          // 1. Process Supabase OAuth Session
-          const { data: { session }, error } = await supabaseClient.auth.getSession();
-
-          if (session) {
-            const overlay = document.getElementById('auth-overlay');
-            if (overlay) overlay.style.display = 'none';
-
-            if (session.provider_token) {
-              localStorage.setItem('gtoken_drive', session.provider_token);
-              googleAccessToken = session.provider_token;
-            }
-
-            await checkRolloverAndLoad();
-            subscribeRealtime();
-          } else {
-            await checkPasscodeAuth();
-          }
-
-          // 2. Listen for future auth state changes
           supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
+            if (session) {
               document.getElementById('auth-overlay').style.display = 'none';
               if (session.provider_token) {
                 localStorage.setItem('gtoken_drive', session.provider_token);
@@ -494,11 +456,23 @@
               }
               await checkRolloverAndLoad();
               subscribeRealtime();
-            } else if (event === 'SIGNED_OUT' || !session) {
+            } else {
               document.getElementById('auth-overlay').style.display = 'flex';
             }
           });
 
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          if (session) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            if (session.provider_token) {
+              localStorage.setItem('gtoken_drive', session.provider_token);
+              googleAccessToken = session.provider_token;
+            }
+            await checkRolloverAndLoad();
+            subscribeRealtime();
+          } else if (!window.location.hash.includes('access_token')) {
+            document.getElementById('auth-overlay').style.display = 'flex';
+          }
         } catch (e) {
           console.warn("Supabase init failed:", e);
         }
@@ -603,15 +577,17 @@
 
     async function checkGoogleOAuthReturn() {
       const hash = window.location.hash;
-      if (hash && (hash.includes("access_token") || hash.includes("type=recovery"))) {
-        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-          const { data: { session } } = await supabaseClient.auth.getSession();
-          if (session && session.provider_token) {
-            localStorage.setItem('gtoken_drive', session.provider_token);
-            googleAccessToken = session.provider_token;
-          }
+      if (hash && hash.includes("access_token") && !hash.includes("type=")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+
+        if (accessToken) {
+          localStorage.setItem('gtoken_drive', accessToken);
+          googleAccessToken = accessToken;
+          window.history.replaceState(null, null, window.location.pathname);
+          showToast("Google Account Connected!", "success");
+          fetchPrivateCalendarEvents();
         }
-        return;
       }
     }
 
