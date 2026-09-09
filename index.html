@@ -54,14 +54,6 @@
       });
     }
   </script>
-
-  async function handleSignOut() {
-  if (supabaseClient) {
-    await supabaseClient.auth.signOut();
-    location.reload();
-  }
-}
-  
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   
@@ -136,6 +128,14 @@
             <button id="theme-toggle" onclick="toggleDarkMode()" title="Toggle Light/Dark Theme"
                     class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-[#84a98c]/10 dark:hover:bg-[#404347] transition flex items-center justify-center">
               <span id="theme-icon" class="text-sm">🌙</span>
+            </button>
+
+            <!-- Sign Out Button -->
+            <button onclick="handleSignOut()" title="Sign Out of Daily Organizer"
+                    class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-red-500/10 transition flex items-center justify-center text-[#8c9296] hover:text-red-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
             </button>
           </div>
 
@@ -378,6 +378,14 @@
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
 
   <script>
+    async function handleSignOut() {
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+        localStorage.removeItem('gtoken_drive');
+        location.reload();
+      }
+    }
+
     async function handleSupabaseGoogleLogin() {
       if (!supabaseClient) return;
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
@@ -402,7 +410,6 @@
         const overlay = document.getElementById('auth-overlay');
         if (overlay) overlay.style.display = 'none';
         
-        // Extract Google Provider Access Token if returned by OAuth session
         if (session.provider_token) {
           localStorage.setItem('gtoken_drive', session.provider_token);
           googleAccessToken = session.provider_token;
@@ -1129,7 +1136,7 @@
       e.preventDefault();
       const input = document.getElementById('task-input');
       const text = input.value.trim();
-      if (text) {
+      if {
         currentData.tasks.push({ id: Date.now(), text, completed: false });
         input.value = '';
         saveActiveData();
