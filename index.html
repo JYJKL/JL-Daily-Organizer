@@ -54,6 +54,14 @@
       });
     }
   </script>
+
+  async function handleSignOut() {
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  }
+}
+  
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   
