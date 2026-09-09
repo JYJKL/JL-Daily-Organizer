@@ -462,37 +462,49 @@
       document.getElementById('export-end-date').value = activeDate;
       renderAllUI();
 
-      await checkGoogleOAuthReturn();
-
       if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           
-          await checkPasscodeAuth();
-          
-          supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT' || !session) {
-              document.getElementById('auth-overlay').style.display = 'flex';
-            } else if (session) {
+          // 1. Process Supabase OAuth Session
+          const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+          if (session) {
+            const overlay = document.getElementById('auth-overlay');
+            if (overlay) overlay.style.display = 'none';
+
+            if (session.provider_token) {
+              localStorage.setItem('gtoken_drive', session.provider_token);
+              googleAccessToken = session.provider_token;
+            }
+
+            await checkRolloverAndLoad();
+            subscribeRealtime();
+          } else {
+            await checkPasscodeAuth();
+          }
+
+          // 2. Listen for future auth state changes
+          supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
               document.getElementById('auth-overlay').style.display = 'none';
               if (session.provider_token) {
                 localStorage.setItem('gtoken_drive', session.provider_token);
                 googleAccessToken = session.provider_token;
               }
-              checkRolloverAndLoad();
+              await checkRolloverAndLoad();
               subscribeRealtime();
+            } else if (event === 'SIGNED_OUT' || !session) {
+              document.getElementById('auth-overlay').style.display = 'flex';
             }
           });
 
-          const { data: { session } } = await supabaseClient.auth.getSession();
-          if (session) {
-            await checkRolloverAndLoad();
-            subscribeRealtime();
-          }
         } catch (e) {
           console.warn("Supabase init failed:", e);
         }
       }
+
+      await checkGoogleOAuthReturn();
     });
 
     function showToast(message, type = 'success') {
@@ -591,17 +603,15 @@
 
     async function checkGoogleOAuthReturn() {
       const hash = window.location.hash;
-      if (hash && hash.includes("access_token")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-
-        if (accessToken) {
-          localStorage.setItem('gtoken_drive', accessToken);
-          googleAccessToken = accessToken;
-          window.history.replaceState(null, null, window.location.pathname);
-          showToast("Google Account Connected!", "success");
-          fetchPrivateCalendarEvents();
+      if (hash && (hash.includes("access_token") || hash.includes("type=recovery"))) {
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          if (session && session.provider_token) {
+            localStorage.setItem('gtoken_drive', session.provider_token);
+            googleAccessToken = session.provider_token;
+          }
         }
+        return;
       }
     }
 
