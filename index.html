@@ -57,22 +57,24 @@
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   
-  <!-- Supabase Login Overlay -->
+  <!-- Supabase Google Login Overlay -->
   <div id="auth-overlay" class="fixed inset-0 bg-[#f5f2eb] dark:bg-[#1e2022] z-50 flex items-center justify-center p-4">
     <div class="bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-4">
       <div class="w-12 h-12 bg-[#84a98c]/15 text-[#6b8e73] dark:bg-[#a3b18a]/20 dark:text-[#a3b18a] rounded-full flex items-center justify-center mx-auto text-xl font-bold">🔐</div>
       <div>
         <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">JL's Daily Organizer</h2>
-        <p class="text-xs text-[#8c9296] dark:text-[#9ca3af] mt-1">Sign in to decrypt your daily planner</p>
+        <p class="text-xs text-[#8c9296] dark:text-[#9ca3af] mt-1">Sign in with Google to decrypt your planner</p>
       </div>
-      <form id="auth-form" onsubmit="handleSupabaseLogin(event)" class="space-y-3">
-        <input type="email" id="auth-email" placeholder="Email" required
-               class="w-full text-sm px-3 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg focus:outline-none focus:border-[#84a98c] text-[#4a4e51] dark:text-[#e5e7eb]">
-        <input type="password" id="auth-password" placeholder="Password" required
-               class="w-full text-sm px-3 py-2 bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] rounded-lg focus:outline-none focus:border-[#84a98c] text-[#4a4e51] dark:text-[#e5e7eb]">
-        <p id="auth-error" class="text-xs text-red-500 hidden"></p>
-        <button type="submit" id="auth-submit-btn" class="w-full bg-[#84a98c] hover:bg-[#6b8e73] dark:bg-[#a3b18a] text-white dark:text-[#1e2022] py-2 rounded-lg text-sm font-semibold transition">Sign In</button>
-      </form>
+      <button onclick="handleSupabaseGoogleLogin()" 
+              class="w-full flex items-center justify-center gap-2 bg-[#f8f6f0] dark:bg-[#323538] hover:bg-[#e2dedc] dark:hover:bg-[#404347] border border-[#e2dedc] dark:border-[#404347] text-[#383d40] dark:text-[#f3f4f6] py-2.5 rounded-xl text-xs font-semibold transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.18 1-.78 1.85-1.63 2.45v2.03h2.64c1.55-1.43 2.44-3.53 2.44-6.49z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 4.93-.98 6.57-2.67l-2.64-2.03c-.89.6-2.03.95-3.93.95-3.03 0-5.6-2.04-6.52-4.79H2.78v2.09A10.97 10.97 0 0 0 12 23z"/>
+          <path fill="#FBBC05" d="M5.48 14.46a6.57 6.57 0 0 1 0-4.92V7.45H2.78a10.97 10.97 0 0 0 0 9.1l2.7-2.09z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.21 1 3.19 3.75 1.18 7.45l2.7 2.09c.92-2.75 3.49-4.16 6.52-4.16z"/>
+        </svg>
+        <span>Sign in with Google</span>
+      </button>
     </div>
   </div>
 
@@ -368,42 +370,35 @@
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
 
   <script>
-    async function handleSupabaseLogin(e) {
-      if (e) e.preventDefault();
-      const email = document.getElementById('auth-email').value;
-      const password = document.getElementById('auth-password').value;
-      const errorMsg = document.getElementById('auth-error');
-      const submitBtn = document.getElementById('auth-submit-btn');
-
-      submitBtn.textContent = 'Authenticating...';
-      errorMsg.classList.add('hidden');
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password,
+    async function handleSupabaseGoogleLogin() {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname,
+          scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file'
+        }
       });
 
       if (error) {
-        errorMsg.textContent = error.message;
-        errorMsg.classList.remove('hidden');
-        submitBtn.textContent = 'Sign In';
-      } else {
-        document.getElementById('auth-overlay').style.display = 'none';
-        submitBtn.textContent = 'Sign In';
-        await checkRolloverAndLoad();
-        subscribeRealtime();
+        showToast(`Login Error: ${error.message}`, 'error');
       }
     }
 
     async function checkPasscodeAuth() {
       if (!supabaseClient) return;
       
-      // Check active Supabase auth session
       const { data: { session } } = await supabaseClient.auth.getSession();
       
       if (session) {
         const overlay = document.getElementById('auth-overlay');
         if (overlay) overlay.style.display = 'none';
+        
+        // Extract Google Provider Access Token if returned by OAuth session
+        if (session.provider_token) {
+          localStorage.setItem('gtoken_drive', session.provider_token);
+          googleAccessToken = session.provider_token;
+        }
       } else {
         const overlay = document.getElementById('auth-overlay');
         if (overlay) overlay.style.display = 'flex';
@@ -458,13 +453,19 @@
         try {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           
-          // Auto-check auth state
           await checkPasscodeAuth();
           
-          // Listen for sign-out or session expiration
           supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' || !session) {
               document.getElementById('auth-overlay').style.display = 'flex';
+            } else if (session) {
+              document.getElementById('auth-overlay').style.display = 'none';
+              if (session.provider_token) {
+                localStorage.setItem('gtoken_drive', session.provider_token);
+                googleAccessToken = session.provider_token;
+              }
+              checkRolloverAndLoad();
+              subscribeRealtime();
             }
           });
 
@@ -638,7 +639,6 @@
         const monthHeaderLabel = document.getElementById('native-month-label');
         if (monthHeaderLabel) monthHeaderLabel.textContent = monthName;
 
-        // Step A: Fetch all user calendars
         const calListRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -655,14 +655,12 @@
         const calListData = await calListRes.json();
         const allCalendars = calListData.items || [];
 
-        // Initialize defaults if unset
         allCalendars.forEach(c => {
           if (selectedCalendarIds[c.id] === undefined) {
             selectedCalendarIds[c.id] = c.selected !== false;
           }
         });
 
-        // Render Collapsible Toggle List Items
         if (toggleContainer) {
           toggleContainer.innerHTML = '';
           allCalendars.forEach(c => {
@@ -682,7 +680,6 @@
 
         const activeCalendars = allCalendars.filter(c => selectedCalendarIds[c.id]);
 
-        // Query bounds using local midnight limits converted to ISO
         const startOfMonth = new Date(year, month, 1, 0, 0, 0).toISOString();
         const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
 
@@ -695,7 +692,6 @@
         let allMonthEvents = [];
         let allSchedEvents = [];
 
-        // Step B: Fetch events across selected calendars concurrently
         await Promise.all(activeCalendars.map(async (cal) => {
           const encodedId = encodeURIComponent(cal.id);
 
@@ -718,22 +714,19 @@
           }
         }));
 
-        // Filter out all-day events that fall on a different local date
         const filteredSchedEvents = allSchedEvents.filter(e => {
-          if (e.start.date) { // All-day event
-            const eventDateStr = e.start.date; // e.g., "2026-08-23"
+          if (e.start.date) { 
+            const eventDateStr = e.start.date; 
             if (currentCalView === 'day') {
               return eventDateStr === activeDate;
             } else {
-              // Week view check
               const endDateStr = endSchedObj.toISOString().split('T')[0];
               return eventDateStr >= activeDate && eventDateStr <= endDateStr;
             }
           }
-          return true; // Timed event
+          return true; 
         });
 
-        // Step C: Render Month Grid
         const badge = document.getElementById('month-events-badge');
         if (badge) badge.textContent = `${allMonthEvents.length} Events`;
 
@@ -748,7 +741,6 @@
 
         renderNativeMonthGrid(year, month, day, eventCountsByDay);
 
-        // Step D: Render Schedule List
         filteredSchedEvents.sort((a, b) => {
           const timeA = new Date(a.start.dateTime || `${a.start.date}T00:00:00`).getTime();
           const timeB = new Date(b.start.dateTime || `${b.start.date}T00:00:00`).getTime();
