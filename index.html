@@ -831,6 +831,47 @@
       monthContainer.innerHTML = gridHtml;
     }
 
+    async function getOrCreateBackupFolderId(token) {
+      const folderName = "Organizer Backups";
+
+      // 1. Search for an existing folder with this name in the user's Drive
+      const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
+        `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`
+      )}&fields=files(id)`;
+
+      const searchRes = await fetch(searchUrl, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (searchRes.ok) {
+        const data = await searchRes.json();
+        if (data.files && data.files.length > 0) {
+          return data.files[0].id; // Return existing folder ID
+        }
+      }
+
+      // 2. If no folder exists, create "Organizer Backups" automatically
+      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: folderName,
+          mimeType: 'application/vnd.google-apps.folder'
+        })
+      });
+
+      if (createRes.ok) {
+        const folder = await createRes.json();
+        return folder.id;
+      }
+
+      // Fallback to Drive root if folder creation fails
+      return 'root';
+    }
+
     async function saveArchivesToGoogleDrive(records) {
       if (!googleAccessToken) {
         showToast("Click 'Connect' first to authorize Google Drive access.", "error");
@@ -838,11 +879,15 @@
         return;
       }
 
-      const fileName = `Organizer_Backup_${records[0].date_key}_to_${records[records.length - 1].date_key}.json`;
-      const fileContent = JSON.stringify(records, null, 2);
-      const targetFolderId = "1PJyX621M0Cm5ziXqZOc-pIOD-cFRQfkB";
+      showToast("Locating backup folder in Google Drive...", "success");
 
       try {
+        // Dynamically get or create the user's personal backup folder
+        const targetFolderId = await getOrCreateBackupFolderId(googleAccessToken);
+
+        const fileName = `Organizer_Backup_${records[0].date_key}_to_${records[records.length - 1].date_key}.json`;
+        const fileContent = JSON.stringify(records, null, 2);
+
         const metadata = { 
           name: fileName, 
           mimeType: 'application/json',
@@ -855,14 +900,13 @@
 
         const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${googleAccessToken}` },
+          headers: { Authorization: `Bearer ${googleAccessToken}` },
           body: form
         });
 
         if (res.ok) {
-          showToast("Backup saved to Google Drive!", "success");
+          showToast("Backup saved to 'Organizer Backups' in Google Drive!", "success");
         } else {
-          const errText = await res.text();
           showToast(`Google Drive API error (${res.status})`, "error");
         }
       } catch (e) {
