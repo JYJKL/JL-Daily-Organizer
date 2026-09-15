@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JL's Daily Organizer</title>
+  <title>Daily Organizer</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.json">
   
@@ -133,7 +133,7 @@
               <svg class="w-3.5 h-3.5 theme-accent-text" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/>
               </svg>
-              <span class="hidden sm:inline">Connect</span>
+              <span id="google-auth-label" class="hidden sm:inline">Connect</span>
             </button>
 
             <!-- Open Export Modal Button -->
@@ -462,6 +462,7 @@
       document.getElementById('export-end-date').value = activeDate;
       renderAllUI();
       switchBrowserShortcuts(localStorage.getItem('organizer_browser_choice') || 'chrome');
+      updateGoogleAuthButtonState();
 
       if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
@@ -484,6 +485,7 @@
               if (session.provider_token) {
                 localStorage.setItem('gtoken_drive', session.provider_token);
                 googleAccessToken = session.provider_token;
+                updateGoogleAuthButtonState();
               }
               await checkRolloverAndLoad();
               subscribeRealtime();
@@ -507,6 +509,7 @@
             if (session.provider_token) {
               localStorage.setItem('gtoken_drive', session.provider_token);
               googleAccessToken = session.provider_token;
+              updateGoogleAuthButtonState();
             }
             await checkRolloverAndLoad();
             subscribeRealtime();
@@ -522,6 +525,17 @@
         }
       }
     });
+
+    function updateGoogleAuthButtonState() {
+      const label = document.getElementById('google-auth-label');
+      if (!label) return;
+
+      if (googleAccessToken) {
+        label.textContent = "Connected";
+      } else {
+        label.textContent = "Connect";
+      }
+    }
 
     const BROWSER_SHORTCUTS = {
       chrome: [
@@ -668,7 +682,7 @@
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
         `&response_type=token` +
         `&scope=${encodeURIComponent(scope)}` +
-        `&prompt=select_account`;
+        `&prompt=consent`;
       
       window.location.href = authUrl;
     }
@@ -703,8 +717,8 @@
       if (!token) {
         const promptHtml = `
           <div class="p-4 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-xl border border-[#e2dedc] dark:border-[#404347]">
-            <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Calendar Access Required</p>
-            <button onclick="handleGoogleAuthRedirect()" class="px-3 py-1.5 rounded-lg theme-accent-bg text-white text-xs font-semibold opacity-90 hover:opacity-100">Connect Google Calendar</button>
+            <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Google Connection Expired or Required</p>
+            <button onclick="handleGoogleAuthRedirect()" class="px-3 py-1.5 rounded-lg theme-accent-bg text-white text-xs font-semibold opacity-90 hover:opacity-100">Reconnect Google Account</button>
           </div>`;
         if (monthContainer) monthContainer.innerHTML = promptHtml;
         if (scheduleContainer) scheduleContainer.innerHTML = promptHtml;
@@ -729,6 +743,9 @@
         if (!calListRes.ok) {
           if (calListRes.status === 401) {
             localStorage.removeItem('gtoken_drive');
+            googleAccessToken = null;
+            updateGoogleAuthButtonState();
+            showToast("Google connection expired. Please reconnect.", "error");
             fetchPrivateCalendarEvents();
             return;
           }
@@ -916,6 +933,10 @@
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      if (searchRes.status === 401) {
+        throw new Error("EXPIRED_TOKEN");
+      }
+
       if (searchRes.ok) {
         const data = await searchRes.json();
         if (data.files && data.files.length > 0) {
@@ -935,6 +956,10 @@
         })
       });
 
+      if (createRes.status === 401) {
+        throw new Error("EXPIRED_TOKEN");
+      }
+
       if (createRes.ok) {
         const folder = await createRes.json();
         return folder.id;
@@ -945,7 +970,7 @@
 
     async function saveArchivesToGoogleDrive(records) {
       if (!googleAccessToken) {
-        showToast("Click 'Connect' first to authorize Google Drive access.", "error");
+        showToast("Google connection required. Redirecting to connect...", "error");
         handleGoogleAuthRedirect();
         return;
       }
@@ -974,19 +999,31 @@
           body: form
         });
 
+        if (res.status === 401) {
+          throw new Error("EXPIRED_TOKEN");
+        }
+
         if (res.ok) {
           showToast("Backup saved to 'Organizer Backups' in Google Drive!", "success");
         } else {
           showToast(`Google Drive API error (${res.status})`, "error");
         }
       } catch (e) {
-        showToast(`Drive Backup Failed: ${e.message}`, "error");
+        if (e.message === "EXPIRED_TOKEN") {
+          localStorage.removeItem('gtoken_drive');
+          googleAccessToken = null;
+          updateGoogleAuthButtonState();
+          showToast("Google Access Expired. Reconnecting...", "error");
+          setTimeout(() => handleGoogleAuthRedirect(), 1200);
+        } else {
+          showToast(`Drive Backup Failed: ${e.message}`, "error");
+        }
       }
     }
 
     function exportRecordsAsHTML(records) {
       let mergedContent = records.map(r => generateArchiveDayHTML(r.date_key, r.data)).join('<div style="page-break-after: always; margin-bottom: 40px; border-bottom: 2px dashed #ccc;"></div>');
-      const htmlDoc = `<!DOCTYPE html><html><head><title>JL Organizer Archives</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="p-8 bg-[#f5f2eb] font-sans">${mergedContent}</body></html>`;
+      const htmlDoc = `<!DOCTYPE html><html><head><title>Daily Organizer Archives</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="p-8 bg-[#f5f2eb] font-sans">${mergedContent}</body></html>`;
       
       const blob = new Blob([htmlDoc], { type: 'text/html' });
       const a = document.createElement('a');
