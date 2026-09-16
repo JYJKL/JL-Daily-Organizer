@@ -452,7 +452,7 @@
     let isUserTyping = false;
     let isLoaded = false;
 
-    document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       document.getElementById('date-picker').value = activeDate;
       document.getElementById('export-start-date').value = activeDate;
@@ -470,7 +470,7 @@
             }
           });
 
-          // Auth State Listener
+          // Single Auth State Listener (Handles session persistence + Google token updates)
           supabaseClient.auth.onAuthStateChange(async (event, session) => {
             const overlay = document.getElementById('auth-overlay');
             if (session) {
@@ -493,7 +493,7 @@
             }
           });
 
-          // Check existing session
+          // Initial Session Check
           const { data: { session } } = await supabaseClient.auth.getSession();
           const overlay = document.getElementById('auth-overlay');
 
