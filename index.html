@@ -77,7 +77,7 @@
 </head>
 <body class="bg-[#f5f2eb] dark:bg-[#1e2022] text-[#4a4e51] dark:text-[#d1d5db] font-sans min-h-screen p-4 sm:p-8 transition-colors duration-200">
   
-  <!-- Supabase Google Login Overlay (Hidden by default to prevent refresh flash) -->
+  <!-- Supabase Google Login Overlay -->
   <div id="auth-overlay" class="fixed inset-0 bg-[#f5f2eb] dark:bg-[#1e2022] z-50 hidden items-center justify-center p-4">
     <div class="bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-4">
       <div class="w-12 h-12 theme-accent-light-bg theme-accent-text rounded-full flex items-center justify-center mx-auto text-xl font-bold">🔐</div>
@@ -128,12 +128,12 @@
         <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
           <div class="flex items-center gap-2">
             <!-- Google Auth / Connect Account Button -->
-            <button id="google-auth-btn" onclick="handleGoogleAuthRedirect()" title="Connect Google Account"
+            <button id="google-auth-btn" onclick="handleSupabaseGoogleLogin()" title="Reconnect Google Account Permissions"
                     class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-black/5 dark:hover:bg-white/5 transition flex items-center gap-1.5 text-xs font-medium theme-accent-text">
               <svg class="w-3.5 h-3.5 theme-accent-text" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/>
               </svg>
-              <span id="google-auth-label" class="hidden sm:inline">Connect</span>
+              <span id="google-auth-label" class="hidden sm:inline">Connected</span>
             </button>
 
             <!-- Open Export Modal Button -->
@@ -158,15 +158,10 @@
               </button>
               
               <div id="color-picker-dropdown" class="hidden absolute right-0 mt-2 p-2.5 bg-[#fefcf8] dark:bg-[#282a2d] border border-[#e8e4dc] dark:border-[#383b3e] rounded-xl shadow-lg z-50 flex gap-2">
-                <!-- Sage Green -->
                 <button onclick="setAccentColor('sage')" title="Sage Green" class="w-5 h-5 rounded-full bg-[#84a98c] hover:scale-110 transition border border-white dark:border-[#282a2d] shadow-sm"></button>
-                <!-- Rose -->
                 <button onclick="setAccentColor('rose')" title="Muted Rose" class="w-5 h-5 rounded-full bg-[#c48b9f] hover:scale-110 transition border border-white dark:border-[#282a2d] shadow-sm"></button>
-                <!-- Slate Blue -->
                 <button onclick="setAccentColor('slate')" title="Slate Blue" class="w-5 h-5 rounded-full bg-[#607d8b] hover:scale-110 transition border border-white dark:border-[#282a2d] shadow-sm"></button>
-                <!-- Lavender -->
                 <button onclick="setAccentColor('lavender')" title="Soft Lavender" class="w-5 h-5 rounded-full bg-[#9575cd] hover:scale-110 transition border border-white dark:border-[#282a2d] shadow-sm"></button>
-                <!-- Terracotta / Peach -->
                 <button onclick="setAccentColor('peach')" title="Muted Peach" class="w-5 h-5 rounded-full bg-[#d97757] hover:scale-110 transition border border-white dark:border-[#282a2d] shadow-sm"></button>
               </div>
             </div>
@@ -246,14 +241,13 @@
           <div id="habits-container" class="space-y-2 min-h-[250px]"></div>
         </section>
 
-        <!-- Stacked Native API Card 1: Visual Month Grid with Collapsible Filter -->
+        <!-- Visual Month Grid with Collapsible Filter -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-2">
             <h2 id="native-month-label" class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Month</h2>
             <span id="month-events-badge" class="text-xs theme-accent-text font-medium">0 Events</span>
           </div>
 
-          <!-- Collapsible Calendar Filter Dropdown -->
           <details class="group mb-3 pb-2 border-b border-[#e2dedc] dark:border-[#404347]">
             <summary class="text-xs font-semibold theme-accent-text cursor-pointer hover:underline list-none flex items-center justify-between py-1">
               <span>⚙️ Filter Calendars</span>
@@ -267,7 +261,7 @@
           </div>
         </section>
 
-        <!-- Stacked Native API Card 2: Schedule (Day / Week Mode Toggle) -->
+        <!-- Schedule (Day / Week Mode Toggle) -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Schedule</h2>
@@ -407,11 +401,16 @@
 
     async function handleSupabaseGoogleLogin() {
       if (!supabaseClient) return;
+      
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin + window.location.pathname,
-          scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file'
+          scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         }
       });
 
@@ -420,10 +419,8 @@
       }
     }
 
-    // Database & OAuth Configuration
     const SUPABASE_URL = "https://zeplhjklsuxwndpwfnyl.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcGxoamtsc3V4d25kcHdmbnlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTQ5ODgsImV4cCI6MjEwMjU3MDk4OH0.teirDhtZKFaIrxmsyrHu8TubK1GYQKCJXEsgc4SVb9g";
-    const GOOGLE_CLIENT_ID = "697333791699-1kqaohh8d49eqn7gmbldn1u9dl3q28nl.apps.googleusercontent.com";
 
     let supabaseClient = null;
     let googleAccessToken = localStorage.getItem('gtoken_drive') || null;
@@ -463,11 +460,6 @@
       renderAllUI();
       switchBrowserShortcuts(localStorage.getItem('organizer_browser_choice') || 'chrome');
       
-      // 1. Process Google OAuth redirect back to site
-      await checkGoogleOAuthReturn();
-      updateGoogleAuthButtonState();
-
-      // 2. Initialize Supabase
       if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -489,8 +481,8 @@
               if (session.provider_token) {
                 localStorage.setItem('gtoken_drive', session.provider_token);
                 googleAccessToken = session.provider_token;
-                updateGoogleAuthButtonState();
               }
+              updateGoogleAuthButtonState();
               await checkRolloverAndLoad();
               subscribeRealtime();
             } else {
@@ -513,8 +505,8 @@
             if (session.provider_token) {
               localStorage.setItem('gtoken_drive', session.provider_token);
               googleAccessToken = session.provider_token;
-              updateGoogleAuthButtonState();
             }
+            updateGoogleAuthButtonState();
             await checkRolloverAndLoad();
             subscribeRealtime();
           } else if (!window.location.hash.includes('access_token') && !window.location.search.includes('code=')) {
@@ -530,22 +522,6 @@
       }
     });
 
-    async function checkGoogleOAuthReturn() {
-      const hash = window.location.hash;
-      if (hash && hash.includes("access_token") && !hash.includes("type=")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-
-        if (accessToken) {
-          localStorage.setItem('gtoken_drive', accessToken);
-          googleAccessToken = accessToken;
-          window.history.replaceState(null, null, window.location.pathname);
-          showToast("Google Account Connected!", "success");
-          fetchPrivateCalendarEvents();
-        }
-      }
-    }
-
     function updateGoogleAuthButtonState() {
       const label = document.getElementById('google-auth-label');
       if (!label) return;
@@ -553,7 +529,7 @@
       if (googleAccessToken) {
         label.textContent = "Connected";
       } else {
-        label.textContent = "Connect";
+        label.textContent = "Reconnect";
       }
     }
 
@@ -694,19 +670,6 @@
       }
     }
 
-    function handleGoogleAuthRedirect() {
-      const redirectUri = window.location.origin + window.location.pathname;
-      const scope = "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file";
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        `&response_type=token` +
-        `&scope=${encodeURIComponent(scope)}` +
-        `&prompt=consent`;
-      
-      window.location.href = authUrl;
-    }
-
     function switchApiCalView(view) {
       currentCalView = view;
       const btnDay = document.getElementById('api-cal-day');
@@ -738,7 +701,7 @@
         const promptHtml = `
           <div class="p-4 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-xl border border-[#e2dedc] dark:border-[#404347]">
             <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Google Connection Expired or Required</p>
-            <button onclick="handleGoogleAuthRedirect()" class="px-3 py-1.5 rounded-lg theme-accent-bg text-white text-xs font-semibold opacity-90 hover:opacity-100">Reconnect Google Account</button>
+            <button onclick="handleSupabaseGoogleLogin()" class="px-3 py-1.5 rounded-lg theme-accent-bg text-white text-xs font-semibold opacity-90 hover:opacity-100">Reconnect Google Account</button>
           </div>`;
         if (monthContainer) monthContainer.innerHTML = promptHtml;
         if (scheduleContainer) scheduleContainer.innerHTML = promptHtml;
@@ -765,7 +728,7 @@
             localStorage.removeItem('gtoken_drive');
             googleAccessToken = null;
             updateGoogleAuthButtonState();
-            showToast("Google connection expired. Please reconnect.", "error");
+            showToast("Google connection expired. Reconnecting...", "error");
             fetchPrivateCalendarEvents();
             return;
           }
@@ -990,8 +953,8 @@
 
     async function saveArchivesToGoogleDrive(records) {
       if (!googleAccessToken) {
-        showToast("Google connection required. Redirecting to connect...", "error");
-        handleGoogleAuthRedirect();
+        showToast("Google connection required. Reconnecting...", "error");
+        handleSupabaseGoogleLogin();
         return;
       }
 
@@ -1034,7 +997,7 @@
           googleAccessToken = null;
           updateGoogleAuthButtonState();
           showToast("Google Access Expired. Reconnecting...", "error");
-          setTimeout(() => handleGoogleAuthRedirect(), 1200);
+          setTimeout(() => handleSupabaseGoogleLogin(), 1000);
         } else {
           showToast(`Drive Backup Failed: ${e.message}`, "error");
         }
