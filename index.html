@@ -202,7 +202,7 @@
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks</h2>
             <span class="text-xs theme-accent-text no-print">Auto-saves as you type</span>
           </div>
-          <!-- Grid items-stretch for synchronized row card height -->
+          <!-- Row-first grid layout for synchronized track heights across columns -->
           <div id="schedule-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch overflow-y-auto pr-1"></div>
         </section>
 
@@ -429,6 +429,7 @@
     let currentCalView = 'day';
     let selectedCalendarIds = JSON.parse(localStorage.getItem('user_selected_cals') || '{}');
 
+    // Chronological hours array for left-to-right grid row track pairing
     const HOURS = [
       "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
       "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM"
@@ -453,7 +454,7 @@
     let isUserTyping = false;
     let isLoaded = false;
 
-    // Fetch fresh Google Token via Backend Edge Function (Option B Architecture)
+    // Fetch fresh Google Token via Backend Edge Function (Option B)
     async function getValidGoogleAccessToken() {
       if (!supabaseClient) return localStorage.getItem('gtoken_drive');
 
@@ -1253,8 +1254,8 @@
         const tabIndex = CHRONOLOGICAL_HOURS.indexOf(time) + 1;
 
         const card = document.createElement('div');
-        // flex-col, h-full, min-h-full ensure the card box matches the row height completely
-        card.className = 'flex flex-col justify-between h-full min-h-full p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border w-full transition-all';
+        // h-full and flex-col allow the card box to stretch to match sibling card height in the row track
+        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border flex flex-col justify-between h-full min-h-full w-full transition-all';
         card.innerHTML = `
           <div class="flex justify-between items-center mb-1 flex-shrink-0">
             <span class="text-xs font-semibold theme-accent-text">${time}</span>
@@ -1267,7 +1268,7 @@
           </div>
           <textarea rows="1" placeholder="Empty slot" data-time="${time}" tabindex="${tabIndex}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
-                    class="flex-1 w-full bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
+                    class="flex-1 w-full flex-grow h-full min-h-[2.5rem] bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
 
@@ -1283,33 +1284,42 @@
           }, 0);
         }
       });
+      
+      setTimeout(syncRowHeights, 0);
     }
 
     function autoExpandTextarea(element) {
-      // Clear height to allow shrinking/re-calculation
       element.style.height = 'auto';
-      // Set to scrollHeight so it expands when typing long content
       element.style.height = element.scrollHeight + 'px';
-      // Trigger grid row height recalculation across all card textareas
       syncRowHeights();
     }
 
+    // Explicitly sync heights across card pairs in standard row-first grid track
     function syncRowHeights() {
       const container = document.getElementById('schedule-container');
       if (!container) return;
 
-      const textareas = container.querySelectorAll('textarea');
-      textareas.forEach(ta => {
-        const parentCard = ta.closest('div');
-        if (parentCard) {
-          // Allow parent flex-1 container to stretch the textarea naturally
-          ta.style.height = '100%';
-          if (ta.value) {
-            ta.style.height = 'auto';
-            ta.style.height = Math.max(ta.scrollHeight, parentCard.clientHeight - 32) + 'px';
-          }
-        }
-      });
+      const cards = Array.from(container.children);
+      // Process adjacent pairs in 2-column layout
+      for (let i = 0; i < cards.length; i += 2) {
+        const card1 = cards[i];
+        const card2 = cards[i + 1];
+
+        if (!card1) continue;
+
+        const ta1 = card1.querySelector('textarea');
+        const ta2 = card2 ? card2.querySelector('textarea') : null;
+
+        if (ta1) ta1.style.height = 'auto';
+        if (ta2) ta2.style.height = 'auto';
+
+        const h1 = ta1 ? ta1.scrollHeight : 0;
+        const h2 = ta2 ? ta2.scrollHeight : 0;
+        const maxH = Math.max(h1, h2, 40); // 2.5rem minimum height
+
+        if (ta1) ta1.style.height = maxH + 'px';
+        if (ta2) ta2.style.height = maxH + 'px';
+      }
     }
 
     function saveSchedule(time, val) { 
