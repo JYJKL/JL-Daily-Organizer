@@ -112,7 +112,7 @@
       </div>
       
       <div class="flex flex-col w-full sm:w-auto gap-2.5">
-        <!-- Date Selector (Full row on Mobile) -->
+        <!-- Date Selector -->
         <div class="flex items-center justify-between sm:justify-start gap-1.5 bg-[#f8f6f0] dark:bg-[#323538] p-1.5 px-3 rounded-lg border theme-accent-border w-full sm:w-auto">
           <div class="flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-[#8c9296] dark:text-[#9ca3af] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +124,7 @@
                  class="bg-transparent text-xs font-medium text-[#383d40] dark:text-[#f3f4f6] focus:outline-none cursor-pointer">
         </div>
 
-        <!-- Single Action Line: Buttons + Progress Side-by-Side -->
+        <!-- Single Action Line -->
         <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
           <div class="flex items-center gap-2">
             <!-- Google Auth / Connect Account Button -->
@@ -136,7 +136,7 @@
               <span id="google-auth-label" class="hidden sm:inline">Connected</span>
             </button>
 
-            <!-- Open Export Modal Button -->
+            <!-- Export Button -->
             <button onclick="openExportModal()" title="Export custom range or save to Google Drive / PDF / HTML"
                     class="p-2 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-black/5 dark:hover:bg-white/5 transition flex items-center justify-center">
               <svg class="w-4 h-4 theme-accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,6 +202,7 @@
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks</h2>
             <span class="text-xs theme-accent-text no-print">Auto-saves as you type</span>
           </div>
+          <!-- items-stretch to align grid rows -->
           <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-8 md:grid-cols-2 gap-3 items-stretch overflow-y-auto pr-1"></div>
         </section>
 
@@ -210,7 +211,7 @@
       <!-- Right Column -->
       <div class="space-y-6">
         
-        <!-- Expanded To-Do List -->
+        <!-- To-Do List -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6] mb-4">To-Do List</h2>
           
@@ -226,7 +227,7 @@
           <ul id="task-list" class="space-y-2 max-h-[290px] overflow-y-auto pr-1"></ul>
         </section>
 
-        <!-- Daily Habits with Analytics Sub-Tabs -->
+        <!-- Daily Habits -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Habits & Routines</h2>
@@ -241,7 +242,7 @@
           <div id="habits-container" class="space-y-2 min-h-[250px]"></div>
         </section>
 
-        <!-- Visual Month Grid with Collapsible Filter -->
+        <!-- Visual Month Grid -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-2">
             <h2 id="native-month-label" class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Month</h2>
@@ -261,7 +262,7 @@
           </div>
         </section>
 
-        <!-- Schedule (Day / Week Mode Toggle) -->
+        <!-- Schedule Mode -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200 no-print">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Schedule</h2>
@@ -277,10 +278,10 @@
 
       </div>
 
-      <!-- Cheat Sheets Container -->
+      <!-- Cheat Sheets -->
       <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
         
-        <!-- macOS Reminders Shortcuts -->
+        <!-- Apple Reminders -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Apple Reminders</h2>
@@ -452,14 +453,37 @@
     let isUserTyping = false;
     let isLoaded = false;
 
-document.addEventListener('DOMContentLoaded', async () => {
+    // Fetch fresh Google Token via Backend Edge Function (Option B)
+    async function getValidGoogleAccessToken() {
+      if (!supabaseClient) return localStorage.getItem('gtoken_drive');
+
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) return localStorage.getItem('gtoken_drive');
+
+        const { data, error } = await supabaseClient.functions.invoke('get-google-token');
+
+        if (!error && data?.access_token) {
+          googleAccessToken = data.access_token;
+          localStorage.setItem('gtoken_drive', googleAccessToken);
+          updateGoogleAuthButtonState();
+          return googleAccessToken;
+        }
+      } catch (e) {
+        console.warn("Backend token refresh failed, falling back to cached local token:", e);
+      }
+
+      return localStorage.getItem('gtoken_drive');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       document.getElementById('date-picker').value = activeDate;
       document.getElementById('export-start-date').value = activeDate;
       document.getElementById('export-end-date').value = activeDate;
       renderAllUI();
       switchBrowserShortcuts(localStorage.getItem('organizer_browser_choice') || 'chrome');
-      
+
       if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -470,7 +494,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
           });
 
-          // Single Auth State Listener (Handles session persistence + Google token updates)
+          // Single Auth State Listener
           supabaseClient.auth.onAuthStateChange(async (event, session) => {
             const overlay = document.getElementById('auth-overlay');
             if (session) {
@@ -478,10 +502,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
               }
+
+              // Persist Google Refresh Token to Supabase Database (Option B)
+              if (session.provider_refresh_token) {
+                await supabaseClient
+                  .from('user_provider_tokens')
+                  .upsert({ 
+                    user_id: session.user.id, 
+                    refresh_token: session.provider_refresh_token, 
+                    updated_at: new Date() 
+                  });
+              }
+
               if (session.provider_token) {
                 localStorage.setItem('gtoken_drive', session.provider_token);
                 googleAccessToken = session.provider_token;
+              } else {
+                // Fallback to locally saved token or fetch fresh via Edge Function
+                googleAccessToken = localStorage.getItem('gtoken_drive') || null;
+                await getValidGoogleAccessToken();
               }
+
               updateGoogleAuthButtonState();
               await checkRolloverAndLoad();
               subscribeRealtime();
@@ -502,10 +543,15 @@ document.addEventListener('DOMContentLoaded', async () => {
               overlay.classList.add('hidden');
               overlay.classList.remove('flex');
             }
+
             if (session.provider_token) {
               localStorage.setItem('gtoken_drive', session.provider_token);
               googleAccessToken = session.provider_token;
+            } else {
+              googleAccessToken = localStorage.getItem('gtoken_drive') || null;
+              await getValidGoogleAccessToken();
             }
+
             updateGoogleAuthButtonState();
             await checkRolloverAndLoad();
             subscribeRealtime();
@@ -695,13 +741,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const monthContainer = document.getElementById('private-month-container');
       const scheduleContainer = document.getElementById('private-schedule-container');
       const toggleContainer = document.getElementById('calendar-toggles');
-      const token = localStorage.getItem('gtoken_drive');
+      
+      let token = await getValidGoogleAccessToken();
 
       if (!token) {
         const promptHtml = `
           <div class="p-4 text-center bg-[#f8f6f0] dark:bg-[#323538] rounded-xl border border-[#e2dedc] dark:border-[#404347]">
-            <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Google Connection Expired or Required</p>
-            <button onclick="handleSupabaseGoogleLogin()" class="px-3 py-1.5 rounded-lg theme-accent-bg text-white text-xs font-semibold opacity-90 hover:opacity-100">Reconnect Google Account</button>
+            <p class="text-xs font-medium text-[#8c9296] dark:text-[#9ca3af] mb-2">Google Connection Required</p>
+            <button onclick="handleSupabaseGoogleLogin()" class="px-3 py-1.5 rounded-lg theme-accent-bg text-white text-xs font-semibold opacity-90 hover:opacity-100">Connect Google Account</button>
           </div>`;
         if (monthContainer) monthContainer.innerHTML = promptHtml;
         if (scheduleContainer) scheduleContainer.innerHTML = promptHtml;
@@ -719,19 +766,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const monthHeaderLabel = document.getElementById('native-month-label');
         if (monthHeaderLabel) monthHeaderLabel.textContent = monthName;
 
-        const calListRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+        let calListRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
           headers: { Authorization: `Bearer ${token}` }
         });
 
+        if (calListRes.status === 401) {
+          token = await getValidGoogleAccessToken();
+          calListRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+
         if (!calListRes.ok) {
-          if (calListRes.status === 401) {
-            localStorage.removeItem('gtoken_drive');
-            googleAccessToken = null;
-            updateGoogleAuthButtonState();
-            showToast("Google connection expired. Reconnecting...", "error");
-            fetchPrivateCalendarEvents();
-            return;
-          }
           throw new Error(`Calendar List API returned ${calListRes.status}`);
         }
 
@@ -912,12 +958,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`
       )}&fields=files(id)`;
 
-      const searchRes = await fetch(searchUrl, {
+      let searchRes = await fetch(searchUrl, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (searchRes.status === 401) {
-        throw new Error("EXPIRED_TOKEN");
+        token = await getValidGoogleAccessToken();
+        searchRes = await fetch(searchUrl, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       }
 
       if (searchRes.ok) {
@@ -939,10 +988,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         })
       });
 
-      if (createRes.status === 401) {
-        throw new Error("EXPIRED_TOKEN");
-      }
-
       if (createRes.ok) {
         const folder = await createRes.json();
         return folder.id;
@@ -952,8 +997,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function saveArchivesToGoogleDrive(records) {
-      if (!googleAccessToken) {
-        showToast("Google connection required. Reconnecting...", "error");
+      let token = await getValidGoogleAccessToken();
+
+      if (!token) {
+        showToast("Google connection required. Redirecting...", "error");
         handleSupabaseGoogleLogin();
         return;
       }
@@ -961,7 +1008,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast("Locating backup folder in Google Drive...", "success");
 
       try {
-        const targetFolderId = await getOrCreateBackupFolderId(googleAccessToken);
+        const targetFolderId = await getOrCreateBackupFolderId(token);
 
         const fileName = `Organizer_Backup_${records[0].date_key}_to_${records[records.length - 1].date_key}.json`;
         const fileContent = JSON.stringify(records, null, 2);
@@ -976,14 +1023,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
         form.append('file', new Blob([fileContent], { type: 'application/json' }));
 
-        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        let res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${googleAccessToken}` },
+          headers: { Authorization: `Bearer ${token}` },
           body: form
         });
 
         if (res.status === 401) {
-          throw new Error("EXPIRED_TOKEN");
+          token = await getValidGoogleAccessToken();
+          res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: form
+          });
         }
 
         if (res.ok) {
@@ -992,15 +1044,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           showToast(`Google Drive API error (${res.status})`, "error");
         }
       } catch (e) {
-        if (e.message === "EXPIRED_TOKEN") {
-          localStorage.removeItem('gtoken_drive');
-          googleAccessToken = null;
-          updateGoogleAuthButtonState();
-          showToast("Google Access Expired. Reconnecting...", "error");
-          setTimeout(() => handleSupabaseGoogleLogin(), 1000);
-        } else {
-          showToast(`Drive Backup Failed: ${e.message}`, "error");
-        }
+        showToast(`Drive Backup Failed: ${e.message}`, "error");
       }
     }
 
@@ -1210,7 +1254,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tabIndex = CHRONOLOGICAL_HOURS.indexOf(time) + 1;
 
         const card = document.createElement('div');
-        // Added h-full so cards fill the grid row height completely
         card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border flex flex-col justify-between space-y-1 h-full w-full transition-all';
         card.innerHTML = `
           <div class="flex justify-between items-center mb-1">
