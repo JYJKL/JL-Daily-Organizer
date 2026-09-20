@@ -127,7 +127,7 @@
         <!-- Single Action Line -->
         <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
           <div class="flex items-center gap-2">
-            <!-- Google Auth / Connect Account Button -->
+            <!-- Google Auth Button -->
             <button id="google-auth-btn" onclick="handleSupabaseGoogleLogin()" title="Reconnect Google Account Permissions"
                     class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-[#f8f6f0] dark:bg-[#323538] border border-[#e2dedc] dark:border-[#404347] hover:bg-black/5 dark:hover:bg-white/5 transition flex items-center gap-1.5 text-xs font-medium theme-accent-text">
               <svg class="w-3.5 h-3.5 theme-accent-text" fill="currentColor" viewBox="0 0 24 24">
@@ -175,7 +175,7 @@
             </button>
           </div>
 
-          <!-- Progress Inline on Right -->
+          <!-- Progress Inline -->
           <div class="text-right pl-3 border-l border-[#e8e4dc] dark:border-[#383b3e]">
             <span class="text-[9px] font-medium uppercase tracking-wider text-[#8c9296] dark:text-[#9ca3af] block">Progress</span>
             <div class="text-lg font-semibold theme-accent-text leading-none" id="progress-text">0%</div>
@@ -184,7 +184,7 @@
       </div>
     </header>
 
-    <!-- Banner for Historical View Mode -->
+    <!-- Historical Banner -->
     <div id="archived-banner" class="hidden bg-[#f1eee6] dark:bg-[#323538] border border-[#dfbaaf]/60 dark:border-[#dfbaaf]/60 p-3 rounded-xl text-xs text-[#8c9296] dark:text-[#9ca3af] flex justify-between items-center no-print">
       <span>📜 Viewing archived entry for <strong id="archive-date-label" class="text-[#383d40] dark:text-[#f3f4f6]"></strong>. Edits auto-save to cloud.</span>
       <button onclick="goToToday()" class="theme-accent-text font-semibold hover:underline">Return to Today</button>
@@ -193,17 +193,17 @@
     <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Left Column (Time Blocks on Top) -->
+      <!-- Left Column (Time Blocks) -->
       <div class="lg:col-span-2 space-y-6">
         
-        <!-- Timed Schedule -->
+        <!-- Timed Schedule Section -->
         <section class="bg-[#fefcf8] dark:bg-[#282a2d] p-6 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-[#383b3e] transition-colors duration-200">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks</h2>
             <span class="text-xs theme-accent-text no-print">Auto-saves as you type</span>
           </div>
-          <!-- items-stretch to align grid rows -->
-          <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-8 md:grid-cols-2 gap-3 items-stretch overflow-y-auto pr-1"></div>
+          <!-- Grid items-stretch for synchronized row card height -->
+          <div id="schedule-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch overflow-y-auto pr-1"></div>
         </section>
 
       </div>
@@ -453,7 +453,7 @@
     let isUserTyping = false;
     let isLoaded = false;
 
-    // Fetch fresh Google Token via Backend Edge Function (Option B)
+    // Fetch fresh Google Token via Backend Edge Function (Option B Architecture)
     async function getValidGoogleAccessToken() {
       if (!supabaseClient) return localStorage.getItem('gtoken_drive');
 
@@ -503,7 +503,7 @@
                 overlay.classList.remove('flex');
               }
 
-              // Persist Google Refresh Token to Supabase Database (Option B)
+              // Persist Google Refresh Token to Supabase Database
               if (session.provider_refresh_token) {
                 await supabaseClient
                   .from('user_provider_tokens')
@@ -518,7 +518,6 @@
                 localStorage.setItem('gtoken_drive', session.provider_token);
                 googleAccessToken = session.provider_token;
               } else {
-                // Fallback to locally saved token or fetch fresh via Edge Function
                 googleAccessToken = localStorage.getItem('gtoken_drive') || null;
                 await getValidGoogleAccessToken();
               }
@@ -1254,9 +1253,10 @@
         const tabIndex = CHRONOLOGICAL_HOURS.indexOf(time) + 1;
 
         const card = document.createElement('div');
-        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border flex flex-col justify-between space-y-1 h-full w-full transition-all';
+        // flex-col, h-full, min-h-full ensure the card box matches the row height completely
+        card.className = 'flex flex-col justify-between h-full min-h-full p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border w-full transition-all';
         card.innerHTML = `
-          <div class="flex justify-between items-center mb-1">
+          <div class="flex justify-between items-center mb-1 flex-shrink-0">
             <span class="text-xs font-semibold theme-accent-text">${time}</span>
             ${isWaterSlot ? `
               <label class="flex items-center gap-1 cursor-pointer theme-accent-light-bg px-1.5 py-0.5 rounded-md text-[10px] font-medium theme-accent-text">
@@ -1267,7 +1267,7 @@
           </div>
           <textarea rows="1" placeholder="Empty slot" data-time="${time}" tabindex="${tabIndex}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
-                    class="w-full flex-1 h-full bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
+                    class="flex-1 w-full bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
 
@@ -1286,8 +1286,30 @@
     }
 
     function autoExpandTextarea(element) {
+      // Clear height to allow shrinking/re-calculation
       element.style.height = 'auto';
+      // Set to scrollHeight so it expands when typing long content
       element.style.height = element.scrollHeight + 'px';
+      // Trigger grid row height recalculation across all card textareas
+      syncRowHeights();
+    }
+
+    function syncRowHeights() {
+      const container = document.getElementById('schedule-container');
+      if (!container) return;
+
+      const textareas = container.querySelectorAll('textarea');
+      textareas.forEach(ta => {
+        const parentCard = ta.closest('div');
+        if (parentCard) {
+          // Allow parent flex-1 container to stretch the textarea naturally
+          ta.style.height = '100%';
+          if (ta.value) {
+            ta.style.height = 'auto';
+            ta.style.height = Math.max(ta.scrollHeight, parentCard.clientHeight - 32) + 'px';
+          }
+        }
+      });
     }
 
     function saveSchedule(time, val) { 
