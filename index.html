@@ -202,7 +202,7 @@
             <h2 class="text-xl font-garamond font-semibold text-[#383d40] dark:text-[#f3f4f6]">Time Blocks</h2>
             <span class="text-xs theme-accent-text no-print">Auto-saves as you type</span>
           </div>
-          <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-8 md:grid-cols-2 gap-3 items-start overflow-y-auto pr-1"></div>
+          <div id="schedule-container" class="grid grid-cols-1 md:grid-flow-col md:grid-rows-8 md:grid-cols-2 gap-3 items-stretch overflow-y-auto pr-1"></div>
         </section>
 
       </div>
@@ -1210,9 +1210,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tabIndex = CHRONOLOGICAL_HOURS.indexOf(time) + 1;
 
         const card = document.createElement('div');
-        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border flex flex-col justify-between space-y-1 h-auto self-start w-full transition-all';
+        // Added h-full so cards fill the grid row height completely
+        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border flex flex-col justify-between space-y-1 h-full w-full transition-all';
         card.innerHTML = `
-          <div class="flex justify-between items-center">
+          <div class="flex justify-between items-center mb-1">
             <span class="text-xs font-semibold theme-accent-text">${time}</span>
             ${isWaterSlot ? `
               <label class="flex items-center gap-1 cursor-pointer theme-accent-light-bg px-1.5 py-0.5 rounded-md text-[10px] font-medium theme-accent-text">
@@ -1223,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <textarea rows="1" placeholder="Empty slot" data-time="${time}" tabindex="${tabIndex}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
-                    class="w-full bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
+                    class="w-full flex-1 h-full bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
 
