@@ -409,8 +409,7 @@
           redirectTo: window.location.origin + window.location.pathname,
           scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/drive.file',
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
+            access_type: 'offline'
           }
         }
       });
@@ -1254,8 +1253,8 @@
         const tabIndex = CHRONOLOGICAL_HOURS.indexOf(time) + 1;
 
         const card = document.createElement('div');
-        // h-full and flex-col allow the card box to stretch to match sibling card height in the row track
-        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border flex flex-col justify-between h-full min-h-full w-full transition-all';
+        // card wrapper container styling
+        card.className = 'p-2.5 rounded-xl bg-[#f8f6f0] dark:bg-[#323538] border theme-accent-border flex flex-col justify-between w-full transition-all';
         card.innerHTML = `
           <div class="flex justify-between items-center mb-1 flex-shrink-0">
             <span class="text-xs font-semibold theme-accent-text">${time}</span>
@@ -1268,7 +1267,7 @@
           </div>
           <textarea rows="1" placeholder="Empty slot" data-time="${time}" tabindex="${tabIndex}"
                     oninput="autoExpandTextarea(this); saveSchedule('${time}', this.value)"
-                    class="flex-1 w-full flex-grow h-full min-h-[2.5rem] bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
+                    class="flex-1 w-full flex-grow min-h-[2.5rem] bg-transparent text-sm font-sans text-[#4a4e51] dark:text-[#e5e7eb] focus:outline-none resize-none break-words whitespace-pre-wrap overflow-hidden leading-snug">${escapeHtml(value)}</textarea>
         `;
         container.appendChild(card);
 
@@ -1294,7 +1293,7 @@
       syncRowHeights();
     }
 
-    // Explicitly sync heights across card pairs in standard row-first grid track
+    // Explicitly sync outer card and textarea heights across grid track pairs
     function syncRowHeights() {
       const container = document.getElementById('schedule-container');
       if (!container) return;
@@ -1312,13 +1311,19 @@
 
         if (ta1) ta1.style.height = 'auto';
         if (ta2) ta2.style.height = 'auto';
+        card1.style.height = 'auto';
+        if (card2) card2.style.height = 'auto';
 
         const h1 = ta1 ? ta1.scrollHeight : 0;
         const h2 = ta2 ? ta2.scrollHeight : 0;
-        const maxH = Math.max(h1, h2, 40); // 2.5rem minimum height
+        const maxTextareaHeight = Math.max(h1, h2, 40); // 2.5rem min height
 
-        if (ta1) ta1.style.height = maxH + 'px';
-        if (ta2) ta2.style.height = maxH + 'px';
+        if (ta1) ta1.style.height = maxTextareaHeight + 'px';
+        if (ta2) ta2.style.height = maxTextareaHeight + 'px';
+
+        const maxCardHeight = Math.max(card1.offsetHeight, card2 ? card2.offsetHeight : 0);
+        card1.style.height = maxCardHeight + 'px';
+        if (card2) card2.style.height = maxCardHeight + 'px';
       }
     }
 
